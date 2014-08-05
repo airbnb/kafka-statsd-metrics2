@@ -11,6 +11,7 @@ This can be configured to report stats using pluggable stats reporters to hook u
 
 This project provides a simple integration between Kafka and a StatsD reporter for Metrics.
 
+Metrics can be filtered based on the metric name and the metric dimensions (min, max, percentiles, etc).
         
 ## How to install?
 
@@ -37,6 +38,35 @@ This project provides a simple integration between Kafka and a StatsD reporter f
     
     # note that the StatsD reporter follows the global polling interval (10)
     # kafka.metrics.polling.interval.secs=10
+    
+    # A regex to exclude some metrics
+    # Default is: (kafka\.consumer\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\.server\.FetcherLagMetrics\..*)|(kafka\.log\.Log\..*)|(kafka\.cluster\.Partition\..*)
+    #
+    # The metric name is formatted with this template: group.type.scope.name
+    #
+    # external.kafka.statsd.metrics.exclude_regex=
+    
+    #
+    # Each metric provides multiple dimensions: min, max, meanRate, etc
+    # This is typically too much data.
+    # It is possible to enable/disable some metric dimensions with the following properties:
+    # (default values are shown)
+    #
+    # external.kafka.statsd.dimension.enabled.count=false
+    # external.kafka.statsd.dimension.enabled.meanRate=true
+    # external.kafka.statsd.dimension.enabled.rate1m=true
+    # external.kafka.statsd.dimension.enabled.rate5m=true
+    # external.kafka.statsd.dimension.enabled.rate15m=true
+    # external.kafka.statsd.dimension.enabled.min=false
+    # external.kafka.statsd.dimension.enabled.max=false
+    # external.kafka.statsd.dimension.enabled.mean=true
+    # external.kafka.statsd.dimension.enabled.stddev=false
+    # external.kafka.statsd.dimension.enabled.median=true
+    # external.kafka.statsd.dimension.enabled.p75=false
+    # external.kafka.statsd.dimension.enabled.p95=false
+    # external.kafka.statsd.dimension.enabled.p98=false
+    # external.kafka.statsd.dimension.enabled.p99=true
+    # external.kafka.statsd.dimension.enabled.p999=false
 ```
 
 - finally restart the Kafka server
@@ -61,15 +91,7 @@ You can check your configuration in different ways:
 ```
 
 
-## Dependency Management
-
-### metrics2-statsd
-[metrics2-statsd](https://github.com/ReadyTalk/metrics-statsd) provides a the StatsD reporter for Metrics2. The jar spec is `com.readytalk:metrics2-statsd:4.1.0`.
-
-`kafka-statsd-metrics2` simply provides the integration between Kafka and this reporter. 
-
-
-### Metrics-2.x vs Metrics-3.x
+## Metrics-2.x vs Metrics-3.x
 The metrics project has two main versions: v2 and v3. Version 3 is not backward compatible.
  
 As of [version 0.8.1.1](https://github.com/apache/kafka/blob/0.8.1.1/build.gradle#L217), Kafka depends on [metrics-2.2.0](http://mvnrepository.com/artifact/com.yammer.metrics/metrics-core/2.2.0). 
@@ -92,3 +114,10 @@ This produces a jar file in `build/libs/`.
 
 The shallow jar contains all the `kafka-statsd-metrics2` classes as well as the 
 
+
+# License & Attributions
+
+This project is released under the Apache License Version 2.0 (APLv2).
+
+Part of the code shipped with this project comes from [ReadyTalk Metrics](https://github.com/ReadyTalk/metrics-statsd),
+and has been modified.

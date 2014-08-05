@@ -24,6 +24,8 @@ import kafka.utils.VerifiableProperties;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Properties;
+
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
@@ -34,10 +36,12 @@ public class KafkaStatsdMetricsReporterTest {
     @Before
     public void init(){
         properties = createMock(VerifiableProperties.class);
+        expect(properties.props()).andReturn(new Properties());
         expect(properties.getInt("kafka.metrics.polling.interval.secs", 10)).andReturn(11);
         expect(properties.getString("external.kafka.statsd.host", "localhost")).andReturn("www.google.com");
         expect(properties.getInt("external.kafka.statsd.port", 8125)).andReturn(1234);
         expect(properties.getString("external.kafka.statsd.metrics.prefix", null)).andReturn("foo");
+        expect(properties.getString("external.kafka.statsd.metrics.exclude_regex", KafkaStatsdMetricsReporter.DEFAULT_EXCLUDE_REGEX)).andReturn("foo");
     }
 
     @Test

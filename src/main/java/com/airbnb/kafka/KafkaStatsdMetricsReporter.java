@@ -20,8 +20,11 @@
 
 package com.airbnb.kafka;
 
-import com.readytalk.metrics.StatsDReporter;
+import com.airbnb.metrics.ExcludeMetricPredicate;
+import com.airbnb.metrics.MetricDimensionOptions;
+import com.airbnb.metrics.StatsDReporter;
 import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.MetricPredicate;
 import com.yammer.metrics.reporting.AbstractPollingReporter;
 import kafka.metrics.KafkaMetricsReporter;
 import kafka.utils.VerifiableProperties;
@@ -42,6 +45,8 @@ import java.util.concurrent.TimeUnit;
 public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBean, KafkaMetricsReporter {
 
 
+    public static final String DEFAULT_EXCLUDE_REGEX = "(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)";
+
     private AbstractPollingReporter underlying;
     private boolean enabled = false;
     private boolean running = false;
@@ -49,6 +54,8 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
     private String host;
     private int port;
     private String prefix;
+    private MetricDimensionOptions metricDimensionOptions;
+    private MetricPredicate metricPredicate;
 
 
     @Override
@@ -67,7 +74,16 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
         host = props.getString("external.kafka.statsd.host", "localhost");
         port = props.getInt("external.kafka.statsd.port", 8125);
         prefix = props.getString("external.kafka.statsd.metrics.prefix", null);
-        underlying = new StatsDReporter(Metrics.defaultRegistry(), host, port, prefix);
+        metricPredicate = MetricPredicate.ALL;
+        metricDimensionOptions = MetricDimensionOptions.fromProperties(props.props(), "external.kafka.statsd.dimension.enabled.");
+
+        String exclude_regex = props.getString("external.kafka.statsd.metrics.exclude_regex", DEFAULT_EXCLUDE_REGEX);
+        if (exclude_regex.length() != 0){
+            metricPredicate = new ExcludeMetricPredicate(exclude_regex);
+        }
+
+
+        underlying = new StatsDReporter(Metrics.defaultRegistry(), host, port, prefix, metricPredicate, metricDimensionOptions);
 
         if (enabled) {
             if (logger.isInfoEnabled())
@@ -116,7 +132,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
             running = false;
             if (logger.isInfoEnabled())
                 logger.info("Stopped Kafka Statsd metrics reporter");
-            underlying = new StatsDReporter(Metrics.defaultRegistry(), host, port, prefix);
+            underlying = new StatsDReporter(Metrics.defaultRegistry(), host, port, prefix, metricPredicate, metricDimensionOptions);
         } else {
             if (logger.isInfoEnabled())
                 logger.info("Kafka Statsd metrics reporter is not running");

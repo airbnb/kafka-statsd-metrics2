@@ -41,9 +41,6 @@ repositories {
 dependencies {
     compile('org.apache.kafka:kafka_2.10:0.8.1.1')
     compile 'log4j:log4j:+'
-    runtime 'org.slf4j' +
-            '' +
-            ':slf4j-log4j12:1.7.7'
 
     testCompile(
             'junit:junit:4.11',
@@ -54,8 +51,6 @@ dependencies {
     )
 }
 dependencies {
-    // https://github.com/ReadyTalk/metrics-statsd
-    compile 'com.readytalk:metrics2-statsd:4.1.0'
 }
 
 configurations {
