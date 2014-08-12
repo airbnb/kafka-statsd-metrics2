@@ -42,6 +42,9 @@ import java.math.BigInteger;
 import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.airbnb.metrics.MetricDimensionOptions.Dimension.*;
 
@@ -55,6 +58,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
 
     private final StatsD statsD;
     private MetricDimensionOptions dimensionOptions = MetricDimensionOptions.ALL_ENABLED;
+    private final Pattern whitespaceRegex = Pattern.compile("\\s+");
 
 
     public StatsDReporter(MetricsRegistry metricsRegistry, String host, int port, String prefix, MetricPredicate predicate, MetricDimensionOptions dimensionOptions) {
@@ -96,6 +100,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
         try {
             statsD.connect();
             final long epoch = clock.time() / 1000;
+            printJvmMetrics(epoch);
             printRegularMetrics(epoch);
         } catch (IOException e) {
             logger.info("Failed to connect or print metrics to statsd", e);
@@ -108,6 +113,40 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
         }
 
     }
+
+
+    protected void printJvmMetrics(long epoch) {
+        processGauge("jvm.memory.heap.usage", vm.heapUsage(), epoch);
+        processGauge("jvm.memory.heap.used", vm.heapUsed(), epoch);
+        processGauge("jvm.memory.non_heap.usage", vm.nonHeapUsage(), epoch);
+        for (Map.Entry<String, Double> pool : vm.memoryPoolUsage().entrySet()) {
+            String gaugeName = String.format("jvm.memory.pool.%s.usage", pool.getKey());
+            processGauge(gaugeName, pool.getValue(), epoch);
+        }
+
+        processGauge("jvm.daemon_threads.count", vm.daemonThreadCount(), epoch);
+        processGauge("jvm.threads.count", vm.threadCount(), epoch);
+        processGauge("jvm.uptime", vm.uptime(), epoch);
+        processGauge("jvm.fd_usage", vm.fileDescriptorUsage(), epoch);
+
+        for (Map.Entry<Thread.State, Double> entry : vm.threadStatePercentages()
+                .entrySet()) {
+            String gaugeName = String.format("jvm.threads.state.%s",
+                    entry.getKey());
+            processGauge(gaugeName, entry.getValue(), epoch);
+        }
+
+        for (Map.Entry<String, VirtualMachineMetrics.GarbageCollectorStats> entry : vm
+                .garbageCollectors().entrySet()) {
+
+            String name = entry.getKey();
+            String p = String.format("jvm.gc.%s", name);
+            processGauge(p + ".time", entry.getValue().getTime(TimeUnit.MILLISECONDS), epoch);
+            processGauge(p + ".runs", entry.getValue().getRuns(), epoch);
+        }
+    }
+
+
 
     protected void printRegularMetrics(long epoch) {
         for (Map.Entry<String, SortedMap<MetricName, Metric>> entry : getMetricsRegistry().groupedMetrics(predicate).entrySet()) {
@@ -162,6 +201,13 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
         }
     }
 
+    public void processGauge(String name, Object value, Long epoch) {
+        String stringValue = format(value);
+        if (stringValue != null) {
+            sendToStatsD(sanitizeName(name), stringValue);
+        }
+    }
+
     protected void sendSummarizable(String sanitizedName, Summarizable metric) {
         if(dimensionOptions.isEnabled(min)) sendToStatsD(sanitizedName + ".min", formatNumber(metric.min()));
         if(dimensionOptions.isEnabled(max)) sendToStatsD(sanitizedName + ".max", formatNumber(metric.max()));
@@ -190,6 +236,14 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
                     .append('.');
         }
         return sb.append(name.getName()).toString();
+    }
+
+    protected String sanitizeName(String name) {
+        Matcher m = whitespaceRegex.matcher(name);
+        if (m.find())
+            return m.replaceAll("_");
+        else
+            return name;
     }
 
     private void sendToStatsD(String metricName,  String metricValue) {

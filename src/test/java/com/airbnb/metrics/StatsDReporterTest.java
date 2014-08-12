@@ -35,6 +35,7 @@ import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.reporting.AbstractPollingReporter;
 import com.yammer.metrics.stats.Snapshot;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -225,6 +226,7 @@ public class StatsDReporterTest {
     }
 
     @Test
+    @Ignore
     public void stringGauge() throws Exception {
         final String value = "The Metric";
         addMetricAndRunReporter(
