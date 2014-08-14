@@ -4,6 +4,9 @@
 
 Send Kafka Metrics to your StatsD server.
 
+## Contact 
+**Let us know!** If you fork this, or if you use it, or if it helps in anyway, we'd love to hear from you! opensource@airbnb.com
+
 ## What is it about?
 Kafka uses [Yammer Metrics](http://metrics.codahale.com/getting-started/) (now part of the [Dropwizard project](http://metrics.codahale.com/about/)) for [metrics reporting](https://kafka.apache.org/documentation.html#monitoring)
 in both the server and the client.
@@ -96,7 +99,7 @@ The metrics project has two main versions: v2 and v3. Version 3 is not backward 
  
 As of [version 0.8.1.1](https://github.com/apache/kafka/blob/0.8.1.1/build.gradle#L217), Kafka depends on [metrics-2.2.0](http://mvnrepository.com/artifact/com.yammer.metrics/metrics-core/2.2.0). 
 
-*Note:*_<br/>
+*Note:*<br/>
 In a future release, Kafka [might upgrade](https://issues.apache.org/jira/browse/KAFKA-960) to Metrics-3.x.
 Due to the incompatibilities between Metrics versions, a new Statsd reporter for metrics-3 will be required.<br/>
 All contributions welcome!
@@ -112,7 +115,7 @@ After cloning the repo, type
 
 This produces a jar file in `build/libs/`. 
 
-The shallow jar contains all the `kafka-statsd-metrics2` classes as well as the 
+The shallow jar is a standalone jar.
 
 
 # License & Attributions
