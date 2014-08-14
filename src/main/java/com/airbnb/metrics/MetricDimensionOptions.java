@@ -52,7 +52,7 @@ public class MetricDimensionOptions {
         }
     }
 
-    private final Map<Dimension, Boolean> options = new HashMap<>();
+    private final Map<Dimension, Boolean> options = new HashMap<Dimension, Boolean>();
 
     public Boolean isEnabled(Dimension dimension) {
         return options.get(dimension);
