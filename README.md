@@ -2,7 +2,7 @@
 
 # kafka-statsd-metrics2
 
-Send Kafka Metrics to your StatsD server.
+Send Kafka Metrics to StatsD.
 
 ## Contact 
 **Let us know!** If you fork this, or if you use it, or if it helps in anyway, we'd love to hear from you! opensource@airbnb.com
