@@ -2,68 +2,50 @@
  * Copyright (C) 2014-2015 Alexis Midon alexis.midon@airbnb.com
  * Copyright (C) 2012-2013 Sean Laurent
  * Copyright (C) 2013 metrics-statsd contributors
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.airbnb.metrics;
 
 
-import com.yammer.metrics.core.Clock;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Gauge;
-import com.yammer.metrics.core.Histogram;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.Metered;
-import com.yammer.metrics.core.Metric;
-import com.yammer.metrics.core.MetricName;
-import com.yammer.metrics.core.MetricPredicate;
-import com.yammer.metrics.core.MetricProcessor;
-import com.yammer.metrics.core.MetricsRegistry;
-import com.yammer.metrics.core.Sampling;
-import com.yammer.metrics.core.Summarizable;
-import com.yammer.metrics.core.Timer;
+import com.timgroup.statsd.StatsDClient;
+import com.yammer.metrics.core.*;
 import com.yammer.metrics.reporting.AbstractPollingReporter;
 import com.yammer.metrics.stats.Snapshot;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 
-import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class StatsDReporterTest {
 
-    private static final String METRIC_BASE_NAME = "prefix.java.lang.Object.metric";
+    private static final String METRIC_BASE_NAME = "java.lang.Object.metric";
     @Mock
     private Clock clock;
     @Mock
-    private StatsD statsD;
+    private StatsDClient statsD;
     private AbstractPollingReporter reporter;
     private TestMetricsRegistry registry;
 
@@ -80,10 +62,20 @@ public class StatsDReporterTest {
         when(clock.time()).thenReturn(5678L);
         registry = new TestMetricsRegistry();
         reporter = new StatsDReporter(registry,
-                "prefix",
-                MetricPredicate.ALL,
-                clock,
-                statsD);
+                statsD,
+                MetricDimensionOptions.ALL_ENABLED
+        );
+    }
+
+    @Test
+    public void isTaggedTest() {
+        registry.add(new MetricName("kafka.common", "AppInfo", "Version", null, "kafka.common:type=AppInfo,name=Version"),
+                new Gauge<String>() {
+                    public String value() {
+                        return "0.8.2";
+                    }
+                });
+        assertTrue(((StatsDReporter) reporter).isTagged(registry.allMetrics()));
     }
 
     protected <T extends Metric> void addMetricAndRunReporter(Callable<T> action) throws Exception {
@@ -98,12 +90,20 @@ public class StatsDReporterTest {
         }
     }
 
-    private void verifySend(String metricNameSuffix, String metricValue) {
-        verify(statsD).send(METRIC_BASE_NAME + "." + metricNameSuffix, metricValue);
+    private void verifySend(String metricNameSuffix, double metricValue) {
+        verify(statsD).gauge(METRIC_BASE_NAME + "." + metricNameSuffix, metricValue, null);
     }
 
-    private void verifySend(String metricValue) {
-        verify(statsD).send(METRIC_BASE_NAME, metricValue);
+    private void verifySend(double metricValue) {
+        verify(statsD).gauge(METRIC_BASE_NAME, metricValue, null);
+    }
+
+    private void verifySend(long metricValue) {
+        verify(statsD).gauge(METRIC_BASE_NAME, metricValue, null);
+    }
+
+    private void verifySend(String metricNameSuffix, String metricValue) {
+        verify(statsD).gauge(METRIC_BASE_NAME + "." + metricNameSuffix, Double.valueOf(metricValue), null);
     }
 
     public void verifyTimer() {
@@ -117,50 +117,36 @@ public class StatsDReporterTest {
         verifySend("mean", "2.00");
         verifySend("stddev", "1.50");
         verifySend("median", "0.50");
-        verifySend("75percentile", "0.75");
-        verifySend("95percentile", "0.95");
-        verifySend("98percentile", "0.98");
-        verifySend("99percentile", "0.99");
-        verifySend("999percentile", "1.00");
+        verifySend("75percentile", "0.7505");
+        verifySend("95percentile", "0.9509");
+        verifySend("98percentile", "0.98096");
+        verifySend("99percentile", "0.99098");
+        verifySend("999percentile", "0.999998");
     }
 
     public void verifyMeter() {
-        verifySend("samples", "1");
-        verifySend("meanRate", "2.00");
-        verifySend("1MinuteRate", "1.00");
-        verifySend("5MinuteRate", "5.00");
-        verifySend("15MinuteRate", "15.00");
+        verifySend("samples", 1);
+        verifySend("meanRate", 2.00);
+        verifySend("1MinuteRate", 1.00);
+        verifySend("5MinuteRate", 5.00);
+        verifySend("15MinuteRate", 15.00);
     }
 
     public void verifyHistogram() {
-        verifySend("min", "1.00");
-        verifySend("max", "3.00");
-        verifySend("mean", "2.00");
-        verifySend("stddev", "1.50");
-        verifySend("median", "0.50");
-        verifySend("75percentile", "0.75");
-        verifySend("95percentile", "0.95");
-        verifySend("98percentile", "0.98");
-        verifySend("99percentile", "0.99");
-        verifySend("999percentile", "1.00");
+        verifySend("min", 1.00);
+        verifySend("max", 3.00);
+        verifySend("mean", 2.00);
+        verifySend("stddev", 1.50);
+        verifySend("median", 0.50);
+        verifySend("75percentile", "0.7505");
+        verifySend("95percentile", "0.9509");
+        verifySend("98percentile", "0.98096");
+        verifySend("99percentile", "0.99098");
+        verifySend("999percentile", "0.999998");
     }
 
     public void verifyCounter(long count) {
-        verifySend(Long.toString(count));
-    }
-
-    @Test
-    public void exceptionOnConnect() throws IOException {
-        doThrow(new IOException()).when(statsD).connect();
-        reporter.run();
-        verify(statsD, never()).send(anyString(), anyString());
-    }
-
-    @Test
-    public void exceptionOnClose() throws IOException {
-        //Exception should not bubble up.
-        doThrow(new IOException()).when(statsD).close();
-        reporter.run();
+        verifySend(count);
     }
 
     @Test
@@ -222,11 +208,10 @@ public class StatsDReporterTest {
                         return createGauge(value);
                     }
                 });
-        verifySend(Long.toString(value));
+        verifySend(value);
     }
 
     @Test
-    @Ignore
     public void stringGauge() throws Exception {
         final String value = "The Metric";
         addMetricAndRunReporter(
@@ -236,7 +221,7 @@ public class StatsDReporterTest {
                         return createGauge(value);
                     }
                 });
-        verify(statsD, never()).send(anyString(), anyString());
+        verify(statsD, never()).gauge(Matchers.anyString(), Matchers.anyDouble());
     }
 
     static Counter createCounter(long count) throws Exception {
@@ -338,8 +323,8 @@ public class StatsDReporterTest {
         when(metered.rateUnit()).thenReturn(TimeUnit.SECONDS);
     }
 
-    static void setupSamplingMock(Sampling sampling) {
-        final double[] values = new double[1000];
+    static void setupSamplingMock(Sampling sampling) {  //be careful how snapshot defines statistics
+        final double[] values = new double[1001];
         for (int i = 0; i < values.length; i++) {
             values[i] = i / 1000.0;
         }

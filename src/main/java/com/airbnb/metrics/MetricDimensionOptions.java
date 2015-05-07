@@ -14,6 +14,7 @@
  *   limitations under the License.
  */
 
+
 package com.airbnb.metrics;
 
 import java.util.HashMap;
@@ -28,7 +29,7 @@ public class MetricDimensionOptions {
     public static final MetricDimensionOptions DEFAULT = new MetricDimensionOptions();
     public static final MetricDimensionOptions ALL_ENABLED = new MetricDimensionOptions(Boolean.TRUE);
 
-    enum Dimension {
+    public enum Dimension {    //use name itself as suffix
         count(false),
         meanRate(true),
         rate1m(true),
@@ -47,6 +48,14 @@ public class MetricDimensionOptions {
 
         final Boolean defaultValue;
 
+        final String[] sanitizeNames = {".samples", ".meanRate", ".1MinuteRate", ".5MinuteRate"
+                , ".15MinuteRate", ".min", ".max", ".mean", ".stddev", ".median", ".75percentile"
+                , ".95percentile", ".98percentile", ".99percentile", ".999percentile"};
+
+        public String toNameString() {
+            return sanitizeNames[ordinal()];
+        }
+
         Dimension(Boolean defaultValue) {
             this.defaultValue = defaultValue;
         }
@@ -64,6 +73,7 @@ public class MetricDimensionOptions {
         }
 
     }
+
     public MetricDimensionOptions() {
         for (Dimension k : Dimension.values()) {
             options.put(k, k.defaultValue);
@@ -74,7 +84,7 @@ public class MetricDimensionOptions {
         MetricDimensionOptions df = new MetricDimensionOptions();
         for (Dimension k : Dimension.values()) {
             String key = prefix + k.toString();
-            if(p.containsKey(key)){
+            if (p.containsKey(key)) {
                 Boolean value = Boolean.parseBoolean(p.getProperty(key));
                 df.options.put(k, value);
             }

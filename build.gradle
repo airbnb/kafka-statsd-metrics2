@@ -1,27 +1,9 @@
-/**
- *
- *
- *
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 buildscript {
-    repositories { jcenter() }
+    repositories {
+        jcenter()
+    }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M3'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.0'
     }
 }
 
@@ -32,29 +14,30 @@ apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group = 'com.airbnb'
-description = 'StatsD Support for Kafka Metrics'
+description = 'DogStatsD Support for Kafka Metrics (kafka version: 0.8.1 and 0.8.2)'
+
+//sourceCompatibility = 1.5
+version = '1.0'
 
 repositories {
     mavenCentral()
-    maven { url 'http://dl.bintray.com/readytalk/maven' }
+    maven { url "http://dl.bintray.com/airbnb/jars" }
 }
-dependencies {
-    compile('org.apache.kafka:kafka_2.10:0.8.1.1')
-    compile 'log4j:log4j:+'
 
-    testCompile(
-            'junit:junit:4.11',
-            'org.mockito:mockito-all:1.9.5',
+dependencies {
+    compile 'com.indeed:java-dogstatsd-client:2.0.10'
+
+    compile 'org.apache.kafka:kafka_2.10:0.8.2.1'
+
+    compile 'org.slf4j:slf4j-log4j12:+'
+
+    testCompile('junit:junit:4.11',
             'org.easymock:easymock:3.2',
-            'org.easymock:easymockclassextension:3.2'
-
-    )
-}
-dependencies {
+            "org.mockito:mockito-core:1.+")
 }
 
 configurations {
-    // manually excludes some unnecessary dependencies
+    //manually excludes some unnecessary dependencies
     compile.exclude module: 'zookeeper'
     compile.exclude module: 'zkclient'
     compile.exclude module: 'javax'
@@ -65,11 +48,12 @@ configurations {
     compile.exclude module: 'mail'
 }
 
-
 shadowJar {
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
     exclude 'META-INF/maven/*'
-    exclude dependency('org.apache.kafka:kafka_2.10:0.8.1.1')
-    exclude dependency('log4j:log4j')
+    dependencies {
+        exclude(dependency('org.apache.kafka:kafka_2.10'))
+    }
 }
+

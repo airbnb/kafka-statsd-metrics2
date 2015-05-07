@@ -29,12 +29,12 @@ import java.util.regex.Pattern;
 public class ExcludeMetricPredicate implements MetricPredicate {
     private final Logger logger = Logger.getLogger(getClass());
 
-    final String exclude_regex;
+    final String regexFilter;
     final Pattern pattern;
 
-    public ExcludeMetricPredicate(String exclude_regex){
-        this.exclude_regex=exclude_regex;
-        this.pattern = Pattern.compile(exclude_regex);
+    public ExcludeMetricPredicate(String regexFilter){
+        this.regexFilter=regexFilter;
+        this.pattern = Pattern.compile(regexFilter);
     }
 
     @Override
