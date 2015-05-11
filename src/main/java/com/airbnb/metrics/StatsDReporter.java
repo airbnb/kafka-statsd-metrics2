@@ -1,19 +1,17 @@
 /*
+ * Copyright (c) 2015.  Airbnb.com
  *
- * Copyright (c) 2015. Jun He jun.he@airbnb.com
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.airbnb.metrics;
@@ -33,7 +31,7 @@ import java.util.TreeMap;
 import static com.airbnb.metrics.MetricDimensionOptions.Dimension.*;
 
 /**
- * todo implement MetricPredicate
+ *
  */
 public class StatsDReporter extends AbstractPollingReporter implements MetricProcessor<Long> {
     static final Logger log = LoggerFactory.getLogger(StatsDReporter.class);
@@ -43,37 +41,37 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     private final Clock clock;
     private final MetricDimensionOptions dimensionOptions;
     private MetricPredicate metricPredicate;
-    private boolean isTagSupported;
+    private boolean isTagEnabled;
 
     private Parser nameTagParser;
 
-    public StatsDReporter(MetricsRegistry metricsRegistry
-            , StatsDClient statsd
-            , MetricDimensionOptions metricDimensionOptions) {
+    public StatsDReporter(MetricsRegistry metricsRegistry,
+                          StatsDClient statsd,
+                          MetricDimensionOptions metricDimensionOptions) {
         this(metricsRegistry, statsd, REPORTER_NAME, MetricPredicate.ALL, metricDimensionOptions, true);
     }
 
-    public StatsDReporter(MetricsRegistry metricsRegistry
-            , StatsDClient statsd
-            , MetricPredicate metricPredicate
-            , MetricDimensionOptions metricDimensionOptions
-            , boolean isTagSupported) {
-        this(metricsRegistry, statsd, REPORTER_NAME, metricPredicate, metricDimensionOptions, isTagSupported);
+    public StatsDReporter(MetricsRegistry metricsRegistry,
+                          StatsDClient statsd,
+                          MetricPredicate metricPredicate,
+                          MetricDimensionOptions metricDimensionOptions,
+                          boolean isTagEnabled) {
+        this(metricsRegistry, statsd, REPORTER_NAME, metricPredicate, metricDimensionOptions, isTagEnabled);
     }
 
-    public StatsDReporter(MetricsRegistry metricsRegistry
-            , StatsDClient statsd
-            , String reporterName
-            , MetricPredicate metricPredicate
-            , MetricDimensionOptions metricDimensionOptions
-            , boolean isTagSupported) {
+    public StatsDReporter(MetricsRegistry metricsRegistry,
+                          StatsDClient statsd,
+                          String reporterName,
+                          MetricPredicate metricPredicate,
+                          MetricDimensionOptions metricDimensionOptions,
+                          boolean isTagEnabled) {
         super(metricsRegistry, reporterName);
         this.statsd = statsd;               //exception in statsd is handled by default NO_OP_HANDLER (do nothing)
         this.clock = Clock.defaultClock();
         this.nameTagParser = null;          //postpone set it because kafka doesn't start reporting any metrics.
         this.dimensionOptions = metricDimensionOptions;
         this.metricPredicate = metricPredicate;
-        this.isTagSupported = isTagSupported;
+        this.isTagEnabled = isTagEnabled;
     }
 
     @Override
@@ -90,7 +88,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     }
 
     private void createParser(MetricsRegistry metricsRegistry) {
-        if (isTagSupported) {
+        if (isTagEnabled) {
             final boolean isMetricsTagged = isTagged(metricsRegistry.allMetrics());
             log.info("Kafka metrics {} tagged.", isMetricsTagged ? "is already" : "is not");
             if (isMetricsTagged) {
@@ -115,7 +113,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     }
 
     private void sendAllKafkaMetrics(long epoch) {
-        final Map<MetricName, Metric> allMetrics = new TreeMap<>(getMetricsRegistry().allMetrics());
+        final Map<MetricName, Metric> allMetrics = new TreeMap<MetricName, Metric>(getMetricsRegistry().allMetrics());
         for (Map.Entry<MetricName, Metric> entry : allMetrics.entrySet()) {
             sendAMetric(entry.getKey(), entry.getValue(), epoch);
         }
@@ -157,8 +155,8 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     protected static MetricDimensionOptions.Dimension[] SamplingDims = {median, p75, p95, p98, p99, p999};
 
     private void send(Metered metric) {
-        double[] values = {metric.count(), metric.meanRate(), metric.oneMinuteRate()
-                , metric.fiveMinuteRate(), metric.fifteenMinuteRate()};
+        double[] values = {metric.count(), metric.meanRate(), metric.oneMinuteRate(),
+                metric.fiveMinuteRate(), metric.fifteenMinuteRate()};
         for (int i = 0; i < values.length; ++i) {
             sendDouble(meterDims[i], values[i]);
         }
@@ -173,8 +171,8 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
 
     protected void send(Sampling metric) {
         final Snapshot snapshot = metric.getSnapshot();
-        double[] values = {snapshot.getMedian(), snapshot.get75thPercentile(), snapshot.get95thPercentile()
-                , snapshot.get98thPercentile(), snapshot.get99thPercentile(), snapshot.get999thPercentile()};
+        double[] values = {snapshot.getMedian(), snapshot.get75thPercentile(), snapshot.get95thPercentile(),
+                snapshot.get98thPercentile(), snapshot.get99thPercentile(), snapshot.get999thPercentile()};
         for (int i = 0; i < values.length; ++i) {
             sendDouble(SamplingDims[i], values[i]);
         }

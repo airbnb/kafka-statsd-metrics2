@@ -1,19 +1,17 @@
 /*
+ * Copyright (c) 2015.  Airbnb.com
  *
- * Copyright (c) 2015. Jun He jun.he@airbnb.com
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 package com.airbnb.kafka;
@@ -41,12 +39,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(StatsDReporter.class);
 
-    public static final String DEFAULT_REGEX_FILTER = "(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)";
-
-    @Override
-    public String getMBeanName() {
-        return "kafka:type=" + getClass().getName();
-    }
+    public static final String DEFAULT_EXCLUDE_REGEX = "(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)";
 
     private boolean enabled;
     private AtomicBoolean running = new AtomicBoolean(false);
@@ -57,8 +50,13 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
     private MetricDimensionOptions metricDimensionOptions;
     private MetricPredicate metricPredicate;
     private StatsDClient statsd;
-    private boolean isTagSupported;
+    private boolean isTagEnabled;
     private AbstractPollingReporter underlying = null;
+
+    @Override
+    public String getMBeanName() {
+        return "kafka:type=" + getClass().getName();
+    }
 
     public boolean isRunning() {
         return running.get();
@@ -82,15 +80,17 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
         port = props.getInt("external.kafka.statsd.port", 8125);
         prefix = props.getString("external.kafka.statsd.metrics.prefix", "");
         pollingPeriodInSeconds = props.getInt("kafka.metrics.polling.interval.secs", 10);
-        metricDimensionOptions = MetricDimensionOptions.fromProperties(props.props()
-                , "external.kafka.statsd.dimension.enabled.");
+        metricDimensionOptions = MetricDimensionOptions.fromProperties(props.props(),
+                "external.kafka.statsd.dimension.enabled.");
 
-        String regexFilter = props.getString("external.kafka.statsd.metrics.exclude_regex", DEFAULT_REGEX_FILTER);
-        if (regexFilter != null && regexFilter.length() != 0) {
-            metricPredicate = new ExcludeMetricPredicate(regexFilter);
+        String excludeRegex = props.getString("external.kafka.statsd.metrics.exclude_regex", DEFAULT_EXCLUDE_REGEX);
+        if (excludeRegex != null && excludeRegex.length() != 0) {
+            metricPredicate = new ExcludeMetricPredicate(excludeRegex);
+        } else {
+            metricPredicate = MetricPredicate.ALL;
         }
 
-        this.isTagSupported = props.getBoolean("external.kafka.statsd.support.tag", true);
+        this.isTagEnabled = props.getBoolean("external.kafka.statsd.tag.enabled", true);
     }
 
     @Override
@@ -103,12 +103,12 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
             if (running.get()) {
                 log.warn("Reporter is already running");
             } else {
-                createStatsd();
-                underlying = new StatsDReporter(Metrics.defaultRegistry()
-                        , statsd
-                        , metricPredicate
-                        , metricDimensionOptions
-                        , isTagSupported);
+                statsd = createStatsd();
+                underlying = new StatsDReporter(Metrics.defaultRegistry(),
+                        statsd,
+                        metricPredicate,
+                        metricDimensionOptions,
+                        isTagEnabled);
                 underlying.start(pollingPeriodInSeconds, TimeUnit.SECONDS);
                 log.info("Started Reporter with host={}, port={}, polling_period_secs={}, prefix={}",
                         host, port, pollingPeriodInSeconds, prefix);
@@ -117,12 +117,12 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
         }
     }
 
-    private void createStatsd() {
+    private StatsDClient createStatsd() {
         try {
-            statsd = new NonBlockingStatsDClient(
-                    prefix                                  /* prefix to any stats; may be null or empty string */
-                    , host                                   /* common case: localhost */
-                    , port                                   /* port */
+            return new NonBlockingStatsDClient(
+                    prefix,                                  /* prefix to any stats; may be null or empty string */
+                    host,                                   /* common case: localhost */
+                    port                                   /* port */
             );
         } catch (StatsDClientException ex) {
             log.error("Reporter cannot be started");

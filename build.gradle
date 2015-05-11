@@ -14,9 +14,8 @@ apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group = 'com.airbnb'
-description = 'DogStatsD Support for Kafka Metrics (kafka version: 0.8.1 and 0.8.2)'
+description = 'StatsD Support for Kafka Metrics (kafka version: 0.8.1 and 0.8.2)'
 
-//sourceCompatibility = 1.5
 version = '1.0'
 
 repositories {

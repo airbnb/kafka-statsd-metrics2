@@ -1,19 +1,19 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+/*
+ * Copyright (c) 2015.  Airbnb.com
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
+
 package com.airbnb.kafka;
 
 import kafka.utils.VerifiableProperties;
@@ -38,8 +38,8 @@ public class KafkaStatsdMetricsReporterTest {
         expect(properties.getInt("external.kafka.statsd.port", 8125)).andReturn(1234);
         expect(properties.getString("external.kafka.statsd.metrics.prefix", "")).andReturn("foo");
         expect(properties.getString("external.kafka.statsd.metrics.exclude_regex",
-                KafkaStatsdMetricsReporter.DEFAULT_REGEX_FILTER)).andReturn("foo");
-        expect(properties.getBoolean("external.kafka.statsd.support.tag", true)).andReturn(false);
+                KafkaStatsdMetricsReporter.DEFAULT_EXCLUDE_REGEX)).andReturn("foo");
+        expect(properties.getBoolean("external.kafka.statsd.tag.enabled", true)).andReturn(false);
     }
 
     @Test
