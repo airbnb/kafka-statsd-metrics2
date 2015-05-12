@@ -42,7 +42,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
     public static final String DEFAULT_EXCLUDE_REGEX = "(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)";
 
     private boolean enabled;
-    private AtomicBoolean running = new AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean(false);
     private String host;
     private int port;
     private String prefix;
@@ -104,7 +104,8 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
                 log.warn("Reporter is already running");
             } else {
                 statsd = createStatsd();
-                underlying = new StatsDReporter(Metrics.defaultRegistry(),
+                underlying = new StatsDReporter(
+                        Metrics.defaultRegistry(),
                         statsd,
                         metricPredicate,
                         metricDimensionOptions,
@@ -136,14 +137,14 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
             log.warn("Reporter is disabled");
         } else {
             synchronized (running) {
-                if (running.get() == false) {
-                    log.warn("Reporter is not running");
-                } else {
-                    statsd.stop();
-                    underlying.shutdown();
-                    running.set(false);
-                    log.info("Stopped Reporter with host={}, port={}", host, port);
-                }
+              if (running.get()) {
+                  statsd.stop();
+                  underlying.shutdown();
+                  running.set(false);
+                  log.info("Stopped Reporter with host={}, port={}", host, port);
+              } else {
+                  log.warn("Reporter is not running");
+              }
             }
         }
     }

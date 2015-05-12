@@ -35,7 +35,7 @@ import static com.airbnb.metrics.MetricDimensionOptions.Dimension.*;
  */
 public class StatsDReporter extends AbstractPollingReporter implements MetricProcessor<Long> {
     static final Logger log = LoggerFactory.getLogger(StatsDReporter.class);
-    public static final String REPORTER_NAME = "kafka-metrics-statsd";
+    public static final String REPORTER_NAME = "kafka-statsd-metrics";
 
     private final StatsDClient statsd;
     private final Clock clock;
@@ -43,7 +43,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     private MetricPredicate metricPredicate;
     private boolean isTagEnabled;
 
-    private Parser nameTagParser;
+    private Parser parser;
 
     public StatsDReporter(MetricsRegistry metricsRegistry,
                           StatsDClient statsd,
@@ -68,7 +68,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
         super(metricsRegistry, reporterName);
         this.statsd = statsd;               //exception in statsd is handled by default NO_OP_HANDLER (do nothing)
         this.clock = Clock.defaultClock();
-        this.nameTagParser = null;          //postpone set it because kafka doesn't start reporting any metrics.
+        this.parser = null;          //postpone set it because kafka doesn't start reporting any metrics.
         this.dimensionOptions = metricDimensionOptions;
         this.metricPredicate = metricPredicate;
         this.isTagEnabled = isTagEnabled;
@@ -78,7 +78,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     public void run() {
         try {
             final long epoch = clock.time() / 1000;
-            if (nameTagParser == null) {
+            if (parser == null) {
                 createParser(getMetricsRegistry());
             }
             sendAllKafkaMetrics(epoch);
@@ -90,14 +90,14 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     private void createParser(MetricsRegistry metricsRegistry) {
         if (isTagEnabled) {
             final boolean isMetricsTagged = isTagged(metricsRegistry.allMetrics());
-            log.info("Kafka metrics {} tagged.", isMetricsTagged ? "is already" : "is not");
             if (isMetricsTagged) {
-                nameTagParser = new ParserForTagInMBeanName();
+                log.info("Kafka metrics are tagged");
+                parser = new ParserForTagInMBeanName();
             } else {
-                nameTagParser = new ParserForNoTag();   //todo ParserForTagInName class
+                parser = new ParserForNoTag();   //todo ParserForTagInName class
             }
         } else {
-            nameTagParser = new ParserForNoTag();
+            parser = new ParserForNoTag();
         }
     }
 
@@ -120,13 +120,13 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
     }
 
     private void sendAMetric(MetricName metricName, Metric metric, long epoch) {
-        log.debug(String.format("  MBeanName[%s], Group[%s], Name[%s], Scope[%s], Type[%s]",
-                metricName.getMBeanName(), metricName.getGroup(), metricName.getName(),
-                metricName.getScope(), metricName.getType()));
+        log.debug("  MBeanName[{}], Group[{}], Name[{}], Scope[{}], Type[{}]",
+            metricName.getMBeanName(), metricName.getGroup(), metricName.getName(),
+            metricName.getScope(), metricName.getType());
 
         if (metricPredicate.matches(metricName, metric) && metric != null) {
             try {
-                nameTagParser.parse(metricName);
+                parser.parse(metricName);
                 metric.processWith(this, metricName, epoch);
             } catch (Exception ignored) {
                 log.error("Error printing regular metrics:", ignored);
@@ -136,46 +136,12 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
 
     @Override
     public void processCounter(MetricName metricName, Counter counter, Long context) throws Exception {
-        statsd.gauge(nameTagParser.getName(), counter.count(), nameTagParser.getTags());
+        statsd.gauge(parser.getName(), counter.count(), parser.getTags());
     }
 
     @Override
     public void processMeter(MetricName metricName, Metered meter, Long epoch) {
         send(meter);
-    }
-
-    private void sendDouble(MetricDimensionOptions.Dimension dim, double value) {
-        if (dimensionOptions.isEnabled(dim)) {
-            statsd.gauge(nameTagParser.getName() + dim.toNameString(), value, nameTagParser.getTags());
-        }
-    }
-
-    protected static MetricDimensionOptions.Dimension[] meterDims = {count, meanRate, rate1m, rate5m, rate15m};
-    protected static MetricDimensionOptions.Dimension[] summarizableDims = {min, max, mean, stddev};
-    protected static MetricDimensionOptions.Dimension[] SamplingDims = {median, p75, p95, p98, p99, p999};
-
-    private void send(Metered metric) {
-        double[] values = {metric.count(), metric.meanRate(), metric.oneMinuteRate(),
-                metric.fiveMinuteRate(), metric.fifteenMinuteRate()};
-        for (int i = 0; i < values.length; ++i) {
-            sendDouble(meterDims[i], values[i]);
-        }
-    }
-
-    protected void send(Summarizable metric) {
-        double[] values = {metric.min(), metric.max(), metric.mean(), metric.stdDev()};
-        for (int i = 0; i < values.length; ++i) {
-            sendDouble(summarizableDims[i], values[i]);
-        }
-    }
-
-    protected void send(Sampling metric) {
-        final Snapshot snapshot = metric.getSnapshot();
-        double[] values = {snapshot.getMedian(), snapshot.get75thPercentile(), snapshot.get95thPercentile(),
-                snapshot.get98thPercentile(), snapshot.get99thPercentile(), snapshot.get999thPercentile()};
-        for (int i = 0; i < values.length; ++i) {
-            sendDouble(SamplingDims[i], values[i]);
-        }
     }
 
     @Override
@@ -198,9 +164,43 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
         if (flag == null) {
             log.debug("Gauge can only record long or double metric, it is " + value.getClass());
         } else if (flag.equals(true)) {
-            statsd.gauge(nameTagParser.getName(), new Double(value.toString()), nameTagParser.getTags());
+            statsd.gauge(parser.getName(), new Double(value.toString()), parser.getTags());
         } else {
-            statsd.gauge(nameTagParser.getName(), new Long(value.toString()), nameTagParser.getTags());
+            statsd.gauge(parser.getName(), new Long(value.toString()), parser.getTags());
+        }
+    }
+
+    protected static final MetricDimensionOptions.Dimension[] meterDims = {count, meanRate, rate1m, rate5m, rate15m};
+    protected static final MetricDimensionOptions.Dimension[] summarizableDims = {min, max, mean, stddev};
+    protected static final MetricDimensionOptions.Dimension[] SamplingDims = {median, p75, p95, p98, p99, p999};
+
+    private void send(Metered metric) {
+        double[] values = {metric.count(), metric.meanRate(), metric.oneMinuteRate(),
+            metric.fiveMinuteRate(), metric.fifteenMinuteRate()};
+        for (int i = 0; i < values.length; ++i) {
+            sendDouble(meterDims[i], values[i]);
+        }
+    }
+
+    protected void send(Summarizable metric) {
+        double[] values = {metric.min(), metric.max(), metric.mean(), metric.stdDev()};
+        for (int i = 0; i < values.length; ++i) {
+            sendDouble(summarizableDims[i], values[i]);
+        }
+    }
+
+    protected void send(Sampling metric) {
+        final Snapshot snapshot = metric.getSnapshot();
+        double[] values = {snapshot.getMedian(), snapshot.get75thPercentile(), snapshot.get95thPercentile(),
+            snapshot.get98thPercentile(), snapshot.get99thPercentile(), snapshot.get999thPercentile()};
+        for (int i = 0; i < values.length; ++i) {
+            sendDouble(SamplingDims[i], values[i]);
+        }
+    }
+
+    private void sendDouble(MetricDimensionOptions.Dimension dim, double value) {
+        if (dimensionOptions.isEnabled(dim)) {
+            statsd.gauge(parser.getName() + dim.toNameString(), value, parser.getTags());
         }
     }
 

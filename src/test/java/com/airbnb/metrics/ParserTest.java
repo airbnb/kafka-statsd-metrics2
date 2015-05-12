@@ -20,6 +20,7 @@ import com.yammer.metrics.core.MetricName;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -35,7 +36,7 @@ public class ParserTest {
         Parser p = new ParserForTagInMBeanName();
         p.parse(name);
         assertEquals(p.getName(), "kafka.producer.ProducerRequestMetrics.ProducerRequestSize_all");
-        assertEquals(p.getTags(), new String[]{"clientId:group7"});
+        assertArrayEquals(p.getTags(), new String[]{"clientId:group7"});
     }
 
     @Test

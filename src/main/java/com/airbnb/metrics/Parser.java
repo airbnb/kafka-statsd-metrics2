@@ -31,17 +31,17 @@ public abstract class Parser {
     static final Logger log = LoggerFactory.getLogger(Parser.class);
     static final Pattern whitespaceRegex = Pattern.compile("\\s+");
 
-    public String getName() {
-        return name;
-    }
 
     protected String name;
+    protected String[] tags;
+
+    public String getName() {
+      return name;
+    }
 
     public String[] getTags() {
         return tags;
     }
-
-    protected String[] tags;
 
     public abstract void parse(MetricName metricName);
 

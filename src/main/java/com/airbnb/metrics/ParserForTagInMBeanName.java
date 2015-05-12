@@ -52,13 +52,13 @@ public class ParserForTagInMBeanName extends Parser {
             } else {
                 String tags = mBeanName.substring(idx + name.length() + 1);
                 if ("kafka.producer".equals(metricName.getGroup())) {
-                    if (tags == null || tags.length() <= 0) {
+                    if (tags.length() <= 0) {
                         tags = "clientId=unknown";
                     } else if (!tags.contains("clientId")) {
                         tags = "clientId=unknown,".concat(tags);
                     }
                 }
-                if (tags != null && tags.length() > 0) {
+                if (tags.length() > 0) {
                     return tags.replace('=', ':').split(",");
                 }
             }
