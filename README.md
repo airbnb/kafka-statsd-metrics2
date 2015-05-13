@@ -19,7 +19,7 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 ## How to install?
 
 - Download or build the shadow jar for `kafka-statsd-metrics`.
-- Install the jar in Kafka classpath, typically `./kafka_2.9.2-0.8.1.1/libs/`
+- Install the jar in Kafka classpath, typically `./kafka_2.9.2-0.8.2.1/libs/`
 - In the Kafka config file, `server.properties`, add the following properties:
 
 
@@ -36,11 +36,16 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
     # the port of the StatsD server (8125)
     external.kafka.statsd.port=8125
 
+    # enable the support of statsd tag extension, e.g. datadog statsd
+    external.kafka.statsd.tag.enabled=true
+
     # a prefix for all metrics names (empty)
     external.kafka.statsd.metrics.prefix=
     
     # note that the StatsD reporter follows the global polling interval (10)
     # kafka.metrics.polling.interval.secs=10
+
+
     
     # A regex to exclude some metrics
     # Default is: (kafka\.consumer\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\.server\.FetcherLagMetrics\..*)|(kafka\.log\.Log\..*)|(kafka\.cluster\.Partition\..*)

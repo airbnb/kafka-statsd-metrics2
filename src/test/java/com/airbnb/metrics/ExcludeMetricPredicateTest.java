@@ -27,20 +27,20 @@ import static org.junit.Assert.assertTrue;
  */
 public class ExcludeMetricPredicateTest {
 
-    @Test
-    public void exclude() {
-        ExcludeMetricPredicate predicate = new ExcludeMetricPredicate("my\\.package\\.MyClass.*");
-        // String group, String type, String name, String scope
-        assertFalse(predicate.matches(new MetricName("my.package", "MyClass", "some_name", "some_scope"), null));
-        assertTrue(predicate.matches(new MetricName("another.package", "MyClass", "some_name", "some_scope"), null));
-    }
+  @Test
+  public void exclude() {
+    ExcludeMetricPredicate predicate = new ExcludeMetricPredicate("my\\.package\\.MyClass.*");
+    // String group, String type, String name, String scope
+    assertFalse(predicate.matches(new MetricName("my.package", "MyClass", "some_name", "some_scope"), null));
+    assertTrue(predicate.matches(new MetricName("another.package", "MyClass", "some_name", "some_scope"), null));
+  }
 
-    @Test
-    public void exclude2() {
-        ExcludeMetricPredicate predicate = new ExcludeMetricPredicate("(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)");
-        assertFalse(predicate.matches(new MetricName("kafka.consumer", "FetchRequestAndResponseMetrics", "some_name", "some_scope"), null));
-        assertFalse(predicate.matches(new MetricName("kafka.server", "FetcherStats", "ReplicaFetcherThread", "some_scope"), null));
-        assertTrue(predicate.matches(new MetricName("kafka.server", "ReplicaManager", "IsrExpandsPerSec", "some_scope"), null));
+  @Test
+  public void exclude2() {
+    ExcludeMetricPredicate predicate = new ExcludeMetricPredicate("(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)");
+    assertFalse(predicate.matches(new MetricName("kafka.consumer", "FetchRequestAndResponseMetrics", "some_name", "some_scope"), null));
+    assertFalse(predicate.matches(new MetricName("kafka.server", "FetcherStats", "ReplicaFetcherThread", "some_scope"), null));
+    assertTrue(predicate.matches(new MetricName("kafka.server", "ReplicaManager", "IsrExpandsPerSec", "some_scope"), null));
 
-    }
+  }
 }

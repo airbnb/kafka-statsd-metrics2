@@ -19,19 +19,51 @@ package com.airbnb.metrics;
 
 import com.yammer.metrics.core.MetricName;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public class MetricNameFormatter {
+  static final Pattern whitespaceRegex = Pattern.compile("\\s+");
 
-    public static String format(MetricName name) {
-        final StringBuilder sb = new StringBuilder(128)
-                .append(name.getGroup())
-                .append('.')
-                .append(name.getType())
-                .append('.');
-        if (name.hasScope()) {
-            sb.append(name.getScope())
-                    .append('.');
-        }
-        return sb.append(name.getName()).toString();
+  public static String format(MetricName name) {
+    final StringBuilder sb = new StringBuilder(128)
+        .append(name.getGroup())
+        .append('.')
+        .append(name.getType())
+        .append('.');
+    if (name.hasScope()) {
+      sb.append(name.getScope())
+          .append('.');
     }
+    return sb.append(name.getName()).toString();
+  }
+
+  public static String sanitizeName(MetricName metricName) {
+    return sanitizeName(metricName, metricName.getName(), "");
+  }
+
+  public static String sanitizeName(MetricName metricName, String suffix) {
+    return sanitizeName(metricName, metricName.getName(), suffix);
+  }
+
+  //keep it similar as those in com.airbnb.kafka.KafkaStatsdMetricsReporter
+  public static String sanitizeName(MetricName metricName, String name, String suffix) {
+    return new StringBuilder(128)
+        .append(metricName.getGroup())
+        .append('.')
+        .append(metricName.getType())
+        .append('.')
+        .append(sanitizeName(name))
+        .append(suffix)
+        .toString();
+  }
+
+  public static String sanitizeName(String name) {
+    Matcher m = whitespaceRegex.matcher(name);
+    if (m.find())
+      return m.replaceAll("_");
+    else
+      return name;
+  }
 }

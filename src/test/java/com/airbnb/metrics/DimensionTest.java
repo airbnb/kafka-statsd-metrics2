@@ -16,20 +16,29 @@
 
 package com.airbnb.metrics;
 
-import com.yammer.metrics.core.MetricName;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import java.util.EnumSet;
+import java.util.Properties;
+
+import static org.junit.Assert.*;
 
 /**
  *
  */
-public class MetricNameFormatterTest {
+public class DimensionTest {
 
   @Test
-  public void testFormat() throws Exception {
-    MetricName name = new MetricName("kafka.common", "AppInfo", "Version",
-        null, "kafka.common:type=AppInfo,name=Version");
-    assertEquals(MetricNameFormatter.format(name), "kafka.common.AppInfo.Version");
+  public void create_from_properties() {
+    String prefix = "foo.";
+    Properties p = new Properties();
+    p.setProperty(prefix + "count", "true");
+    p.setProperty(prefix + "meanRate", "false");
+    EnumSet<Dimension> dimensions = Dimension.fromProperties(p, prefix);
+
+    assertTrue(dimensions.contains(Dimension.count));
+    assertFalse(dimensions.contains(Dimension.meanRate));
+    assertEquals(Dimension.rate1m.displayName, "1MinuteRate");
   }
+
 }

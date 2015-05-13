@@ -27,25 +27,25 @@ import java.util.regex.Pattern;
  *
  */
 public class ExcludeMetricPredicate implements MetricPredicate {
-    private final Logger logger = Logger.getLogger(getClass());
+  private final Logger logger = Logger.getLogger(getClass());
 
-    final String excludeRegex;
-    final Pattern pattern;
+  final String excludeRegex;
+  final Pattern pattern;
 
-    public ExcludeMetricPredicate(String excludeRegex) {
-        this.excludeRegex = excludeRegex;
-        this.pattern = Pattern.compile(excludeRegex);
+  public ExcludeMetricPredicate(String excludeRegex) {
+    this.excludeRegex = excludeRegex;
+    this.pattern = Pattern.compile(excludeRegex);
+  }
+
+  @Override
+  public boolean matches(MetricName name, Metric metric) {
+    String n = MetricNameFormatter.format(name);
+    boolean excluded = pattern.matcher(n).matches();
+    if (excluded) {
+      if (logger.isTraceEnabled()) {
+        logger.trace("Metric " + n + " is excluded");
+      }
     }
-
-    @Override
-    public boolean matches(MetricName name, Metric metric) {
-        String n = MetricNameFormatter.format(name);
-        boolean excluded = pattern.matcher(n).matches();
-        if (excluded) {
-            if (logger.isTraceEnabled()) {
-                logger.trace("Metric " + n + " is excluded");
-            }
-        }
-        return !excluded;
-    }
+    return !excluded;
+  }
 }

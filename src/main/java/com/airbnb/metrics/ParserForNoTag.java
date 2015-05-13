@@ -18,18 +18,22 @@ package com.airbnb.metrics;
 
 import com.yammer.metrics.core.MetricName;
 
+import static com.airbnb.metrics.MetricNameFormatter.sanitizeName;
+
 /**
  * Parser for statsd not supporting tags
  */
 public class ParserForNoTag extends Parser {
 
-    @Override
-    public void parse(MetricName metricName) {
-        if (metricName.getScope() == null || metricName.getScope().isEmpty()) {
-            name = sanitizeName(metricName);
-        } else {
-            name = sanitizeName(metricName, "%s_%s".format(metricName.getScope(), metricName.getName()));
-        }
-        tags = null;
+  public static final String[] EMPTY_TAG = new String[]{};
+
+  @Override
+  public void parse(MetricName metricName) {
+    if (metricName.getScope() == null || metricName.getScope().isEmpty()) {
+      name = sanitizeName(metricName);
+    } else {
+      name = sanitizeName(metricName, "%s_%s".format(metricName.getScope(), metricName.getName()));
     }
+    tags = EMPTY_TAG;
+  }
 }
