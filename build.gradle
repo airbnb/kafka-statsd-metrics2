@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.indeed:java-dogstatsd-client:2.0.10'
+    compile 'com.indeed:java-dogstatsd-client:2.0.11'
     compile 'org.apache.kafka:kafka_2.10:0.8.2.1'
     compile 'org.slf4j:slf4j-log4j12:+'
 
