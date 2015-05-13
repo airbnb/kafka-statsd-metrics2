@@ -18,7 +18,7 @@ package com.airbnb.metrics;
 
 import com.yammer.metrics.core.MetricName;
 
-import static com.airbnb.metrics.MetricNameFormatter.sanitizeName;
+import static com.airbnb.metrics.MetricNameFormatter.formatWithScope;
 
 /**
  * Parser for statsd not supporting tags
@@ -29,11 +29,7 @@ public class ParserForNoTag extends Parser {
 
   @Override
   public void parse(MetricName metricName) {
-    if (metricName.getScope() == null || metricName.getScope().isEmpty()) {
-      name = sanitizeName(metricName);
-    } else {
-      name = sanitizeName(metricName, "%s_%s".format(metricName.getScope(), metricName.getName()));
-    }
+    name = formatWithScope(metricName);
     tags = EMPTY_TAG;
   }
 }

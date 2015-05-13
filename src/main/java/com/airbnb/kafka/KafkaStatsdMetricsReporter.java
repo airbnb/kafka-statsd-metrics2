@@ -81,8 +81,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
     port = props.getInt("external.kafka.statsd.port", 8125);
     prefix = props.getString("external.kafka.statsd.metrics.prefix", "");
     pollingPeriodInSeconds = props.getInt("kafka.metrics.polling.interval.secs", 10);
-    metricDimensions = Dimension.fromProperties(props.props(),
-        "external.kafka.statsd.dimension.enabled.");
+    metricDimensions = Dimension.fromProperties(props.props(), "external.kafka.statsd.dimension.enabled.");
 
     String excludeRegex = props.getString("external.kafka.statsd.metrics.exclude_regex", DEFAULT_EXCLUDE_REGEX);
     if (excludeRegex != null && excludeRegex.length() != 0) {
@@ -139,8 +138,8 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
     } else {
       synchronized (running) {
         if (running.get()) {
-          statsd.stop();
           underlying.shutdown();
+          statsd.stop();
           running.set(false);
           log.info("Stopped Reporter with host={}, port={}", host, port);
         } else {

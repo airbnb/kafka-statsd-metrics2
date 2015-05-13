@@ -95,7 +95,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
         log.info("Kafka metrics are tagged");
         parser = new ParserForTagInMBeanName();
       } else {
-        parser = new ParserForNoTag();   //todo ParserForTagInName class
+        parser = new ParserForNoTag();
       }
     } else {
       parser = new ParserForNoTag();
@@ -137,7 +137,6 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
 
   @Override
   public void processCounter(MetricName metricName, Counter counter, Long context) throws Exception {
-
     statsd.gauge(parser.getName(), counter.count(), parser.getTags());
   }
 

@@ -26,35 +26,32 @@ import java.util.regex.Pattern;
 public class MetricNameFormatter {
   static final Pattern whitespaceRegex = Pattern.compile("\\s+");
 
-  public static String format(MetricName name) {
-    final StringBuilder sb = new StringBuilder(128)
-        .append(name.getGroup())
+
+  public static String formatWithScope(MetricName metricName) {
+    StringBuilder sb = new StringBuilder(128)
+        .append(metricName.getGroup())
         .append('.')
-        .append(name.getType())
+        .append(metricName.getType())
         .append('.');
-    if (name.hasScope()) {
-      sb.append(name.getScope())
-          .append('.');
+    if (metricName.hasScope() && !metricName.getScope().isEmpty()) {
+      sb.append(metricName.getScope())
+          .append(".");
     }
-    return sb.append(name.getName()).toString();
+    sb.append(sanitizeName(metricName.getName()));
+    return sb.toString();
   }
 
-  public static String sanitizeName(MetricName metricName) {
-    return sanitizeName(metricName, metricName.getName(), "");
+  public static String format(MetricName metricName) {
+    return format(metricName, "");
   }
 
-  public static String sanitizeName(MetricName metricName, String suffix) {
-    return sanitizeName(metricName, metricName.getName(), suffix);
-  }
-
-  //keep it similar as those in com.airbnb.kafka.KafkaStatsdMetricsReporter
-  public static String sanitizeName(MetricName metricName, String name, String suffix) {
+  public static String format(MetricName metricName, String suffix) {
     return new StringBuilder(128)
         .append(metricName.getGroup())
         .append('.')
         .append(metricName.getType())
         .append('.')
-        .append(sanitizeName(name))
+        .append(sanitizeName(metricName.getName()))
         .append(suffix)
         .toString();
   }

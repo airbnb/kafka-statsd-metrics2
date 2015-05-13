@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static com.airbnb.metrics.MetricNameFormatter.sanitizeName;
+import static com.airbnb.metrics.MetricNameFormatter.format;
 
 /**
  * Parser for kafka 0.8.2 or later version
@@ -39,9 +39,9 @@ public class ParserForTagInMBeanName extends Parser {
   public void parse(MetricName metricName) {
     Pattern p = tagRegexMap.get(metricName.getType());
     if (p != null && !p.matcher(metricName.getMBeanName()).matches()) {
-      name = sanitizeName(metricName, SUFFIX_FOR_ALL);
+      name = format(metricName, SUFFIX_FOR_ALL);
     } else {
-      name = sanitizeName(metricName);
+      name = format(metricName);
     }
     tags = parseTags(metricName);
   }

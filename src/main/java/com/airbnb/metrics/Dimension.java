@@ -49,8 +49,6 @@ public enum Dimension {    //use name itself as suffix
     this.displayName = defaultValue;
   }
 
-  public static EnumSet<Dimension> ALL = EnumSet.allOf(Dimension.class);
-
   public static EnumSet<Dimension> fromProperties(Properties p, String prefix) {
     EnumSet<Dimension> df = EnumSet.allOf(Dimension.class);
     for (Dimension k : Dimension.values()) {

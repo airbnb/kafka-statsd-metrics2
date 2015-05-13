@@ -30,6 +30,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 
+import java.util.EnumSet;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +63,7 @@ public class StatsDReporterTest {
     registry = new TestMetricsRegistry();
     reporter = new StatsDReporter(registry,
         statsD,
-        Dimension.ALL
+        EnumSet.allOf(Dimension.class)
     );
   }
 

@@ -17,7 +17,6 @@
 package com.airbnb.metrics;
 
 import com.yammer.metrics.core.MetricName;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -94,12 +93,6 @@ public class ParserTest {
     p.parse(name);
     assertEquals(p.getName(), "kafka.server.ReplicaManager.LeaderCount");
     assertArrayEquals(p.getTags(), new String[]{});
-  }
-
-  @Test
-  @Ignore
-  public void testParseTagInName() throws Exception {
-
   }
 
   @Test

@@ -19,6 +19,8 @@ package com.airbnb.metrics;
 import com.yammer.metrics.core.MetricName;
 import org.junit.Test;
 
+import static com.airbnb.metrics.MetricNameFormatter.format;
+import static com.airbnb.metrics.MetricNameFormatter.formatWithScope;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -28,8 +30,24 @@ public class MetricNameFormatterTest {
 
   @Test
   public void testFormat() throws Exception {
-    MetricName name = new MetricName("kafka.common", "AppInfo", "Version",
-        null, "kafka.common:type=AppInfo,name=Version");
-    assertEquals(MetricNameFormatter.format(name), "kafka.common.AppInfo.Version");
+    assertEquals(
+        format(new MetricName("kafka.common", "AppInfo", "Version", null, "kafka.common:type=AppInfo,name=Version")),
+        "kafka.common.AppInfo.Version");
+    assertEquals(
+        format(new MetricName("kafka.common", "AppInfo", "Version", "my_scope", "kafka.common:type=AppInfo,name=Version")),
+        "kafka.common.AppInfo.Version");
+  }
+
+  @Test
+  public void testFormatWithScope() throws Exception {
+    assertEquals(
+        formatWithScope(new MetricName("kafka.common", "AppInfo", "Version", null, "kafka.common:type=AppInfo,name=Version")),
+        "kafka.common.AppInfo.Version");
+    assertEquals(
+        formatWithScope(new MetricName("kafka.common", "AppInfo", "Version", "", "kafka.common:type=AppInfo,name=Version")),
+        "kafka.common.AppInfo.Version");
+    assertEquals(
+        formatWithScope(new MetricName("kafka.common", "AppInfo", "Version", "my_scope", "kafka.common:type=AppInfo,name=Version")),
+        "kafka.common.AppInfo.my_scope.Version");
   }
 }
