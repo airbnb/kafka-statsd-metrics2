@@ -14,14 +14,22 @@
  *    limitations under the License.
  */
 
-package com.airbnb.kafka;
+package com.airbnb.metrics;
 
-import kafka.metrics.KafkaMetricsReporterMBean;
+import com.yammer.metrics.core.MetricName;
+
+import static com.airbnb.metrics.MetricNameFormatter.formatWithScope;
 
 /**
- * @see kafka.metrics.KafkaMetricsReporterMBean: the custom reporter needs to
- * additionally implement an MBean trait that extends kafka.metrics.KafkaMetricsReporterMBean
- * so that the registered MBean is compliant with the standard MBean convention.
+ * Parser for statsd not supporting tags
  */
-public interface KafkaStatsdMetricsReporterMBean extends KafkaMetricsReporterMBean {
+public class ParserForNoTag extends Parser {
+
+  public static final String[] EMPTY_TAG = new String[]{};
+
+  @Override
+  public void parse(MetricName metricName) {
+    name = formatWithScope(metricName);
+    tags = EMPTY_TAG;
+  }
 }

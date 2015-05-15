@@ -14,14 +14,30 @@
  *    limitations under the License.
  */
 
-package com.airbnb.kafka;
+package com.airbnb.metrics;
 
-import kafka.metrics.KafkaMetricsReporterMBean;
+import com.yammer.metrics.core.MetricName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @see kafka.metrics.KafkaMetricsReporterMBean: the custom reporter needs to
- * additionally implement an MBean trait that extends kafka.metrics.KafkaMetricsReporterMBean
- * so that the registered MBean is compliant with the standard MBean convention.
+ *
  */
-public interface KafkaStatsdMetricsReporterMBean extends KafkaMetricsReporterMBean {
+public abstract class Parser {
+
+  static final Logger log = LoggerFactory.getLogger(Parser.class);
+
+  protected String name;
+  protected String[] tags;
+
+  public String getName() {
+    return name;
+  }
+
+  public String[] getTags() {
+    return tags;
+  }
+
+  public abstract void parse(MetricName metricName);
+
 }
