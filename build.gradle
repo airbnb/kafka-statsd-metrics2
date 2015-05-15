@@ -16,8 +16,6 @@ apply plugin: 'com.github.johnrengelman.shadow'
 group = 'com.airbnb'
 description = 'StatsD Support for Kafka Metrics (kafka version: 0.8.1 and 0.8.2)'
 
-version = '1.0'
-
 repositories {
     mavenCentral()
     maven { url "http://dl.bintray.com/airbnb/jars" }
