@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.0'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M3'
     }
 }
 
@@ -54,8 +54,7 @@ shadowJar {
     exclude 'META-INF/*.DSA'
     exclude 'META-INF/*.RSA'
     exclude 'META-INF/maven/*'
-    dependencies {
-        exclude(dependency('org.apache.kafka:kafka_2.10'))
-    }
+    exclude dependency('org.apache.kafka:kafka_2.10:0.8.2.1')
+    exclude dependency('org.slf4j:slf4j-log4j12')
 }
 
