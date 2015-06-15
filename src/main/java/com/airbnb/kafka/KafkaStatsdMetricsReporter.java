@@ -40,7 +40,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
 
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(StatsDReporter.class);
 
-  public static final String DEFAULT_EXCLUDE_REGEX = "(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)";
+  public static final String DEFAULT_EXCLUDE_REGEX = "(kafka\\.server\\.FetcherStats.*)|(kafka\\.consumer\\.ZookeeperConsumerConnector.*)|(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(kafka\\.consumer\\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\\.server\\.FetcherLagMetrics\\..*)|(kafka\\.log\\.Log\\..*)|(kafka\\.cluster\\.Partition\\..*)";
 
   private boolean enabled;
   private final AtomicBoolean running = new AtomicBoolean(false);
