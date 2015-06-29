@@ -37,7 +37,7 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
         
 ## How to install?
 
-- Download or build the shadow jar for `kafka-statsd-metrics`.
+- [Download](https://bintray.com/airbnb/jars/kafka-statsd-metrics2/view) or build the shadow jar for `kafka-statsd-metrics`.
 - Install the jar in Kafka classpath, typically `./kafka_2.9.2-0.8.2.1/libs/`
 - In the Kafka config file, `server.properties`, add the following properties. Default values are in parenthesis.
 
