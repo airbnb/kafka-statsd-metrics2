@@ -121,7 +121,7 @@ public class StatsDReporter extends AbstractPollingReporter implements MetricPro
   }
 
   private void sendAMetric(MetricName metricName, Metric metric, long epoch) {
-    log.debug("  MBeanName[{}], Group[{}], Name[{}], Scope[{}], Type[{}]",
+    log.debug("MBeanName[{}], Group[{}], Name[{}], Scope[{}], Type[{}]",
         metricName.getMBeanName(), metricName.getGroup(), metricName.getName(),
         metricName.getScope(), metricName.getType());
 

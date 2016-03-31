@@ -68,10 +68,10 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
   public synchronized void init(VerifiableProperties props) {
     loadConfig(props);
     if (enabled) {
-      log.info("Reporter is enabled and starting...");
+      log.info("NewStatsDReporter is enabled and starting...");
       startReporter(pollingPeriodInSeconds);
     } else {
-      log.warn("Reporter is disabled");
+      log.warn("NewStatsDReporter is disabled");
     }
   }
 
@@ -101,7 +101,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
 
     synchronized (running) {
       if (running.get()) {
-        log.warn("Reporter is already running");
+        log.warn("NewStatsDReporter is already running");
       } else {
         statsd = createStatsd();
         underlying = new StatsDReporter(
@@ -111,7 +111,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
             metricDimensions,
             isTagEnabled);
         underlying.start(pollingPeriodInSeconds, TimeUnit.SECONDS);
-        log.info("Started Reporter with host={}, port={}, polling_period_secs={}, prefix={}",
+        log.info("Started NewStatsDReporter with host={}, port={}, polling_period_secs={}, prefix={}",
             host, port, pollingPeriodInSeconds, prefix);
         running.set(true);
       }
@@ -126,7 +126,7 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
           port                                   /* port */
       );
     } catch (StatsDClientException ex) {
-      log.error("Reporter cannot be started");
+      log.error("NewStatsDReporter cannot be started");
       throw ex;
     }
   }
@@ -134,16 +134,16 @@ public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBe
   @Override
   public void stopReporter() {
     if (!enabled) {
-      log.warn("Reporter is disabled");
+      log.warn("NewStatsDReporter is disabled");
     } else {
       synchronized (running) {
         if (running.get()) {
           underlying.shutdown();
           statsd.stop();
           running.set(false);
-          log.info("Stopped Reporter with host={}, port={}", host, port);
+          log.info("Stopped NewStatsDReporter with host={}, port={}", host, port);
         } else {
-          log.warn("Reporter is not running");
+          log.warn("NewStatsDReporter is not running");
         }
       }
     }

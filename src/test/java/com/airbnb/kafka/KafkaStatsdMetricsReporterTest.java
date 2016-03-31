@@ -59,7 +59,6 @@ public class KafkaStatsdMetricsReporterTest {
     assertTrue("reporter should be running once #init has been invoked", reporter.isRunning());
 
     verify(properties);
-
   }
 
   @Test

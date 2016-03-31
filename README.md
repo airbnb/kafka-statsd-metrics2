@@ -4,7 +4,7 @@
 
 Send Kafka Metrics to StatsD.
 
-## Contact 
+## Contact
 **Let us know!** If you fork this, or if you use it, or if it helps in anyway, we'd love to hear from you! opensource@airbnb.com
 
 ## What is it about?
@@ -17,13 +17,19 @@ This project provides a simple integration between Kafka and a StatsD reporter f
 Metrics can be filtered based on the metric name and the metric dimensions (min, max, percentiles, etc).
 
 ## Supported Kafka versions
-
+- For Kafka `0.9.0.0` or later use `kafka-statsd-metrics2-0.5.0`
 - For Kafka `0.8.2.0` or later use `kafka-statsd-metrics2-0.4.0`
 - For Kafka `0.8.1.1` or prior use `kafka-statsd-metrics2-0.3.0`
 
 
 ## Releases
- 
+### 0.5.0
+
+ - `0.5.0` add support to report new producer/consumer metrics in kafka-0.9
+ - Compatible with Kafka 0.8
+ - A complete list of all the metrics supported in the metrics reporter can be found [here](http://docs.confluent.io/2.0.1/kafka/monitoring.html)
+
+
 ### 0.4.0
 
  - `0.4.0` adds support for tags on metrics. See [dogstatsd extensions](http://docs.datadoghq.com/guides/dogstatsd/#tags). If your statsd server does not support tags, you can disable them in the Kafka configuration. See property `external.kafka.statsd.tag.enabled` below.
@@ -31,21 +37,69 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
  - The statsd client is [`com.indeed:java-dogstatsd-client:2.0.11`](https://github.com/indeedeng/java-dogstatsd-client/tree/java-dogstatsd-client-2.0.11).
  - support new `MetricNames` introduced by kafka 0.8.2.x
 
-## 0.3.0
+### 0.3.0
 
 - initial release
-        
+
 ## How to install?
 
 - [Download](https://bintray.com/airbnb/jars/kafka-statsd-metrics2/view) or build the shadow jar for `kafka-statsd-metrics`.
-- Install the jar in Kafka classpath, typically `./kafka_2.9.2-0.8.2.1/libs/`
+- Install the jar in Kafka classpath, typically `./kafka_2.11-0.9.0.1/libs/`
 - In the Kafka config file, `server.properties`, add the following properties. Default values are in parenthesis.
 
-
-
+## How to use metrics in Kafka 0.9 / 0.8?
+### New metrics in kafka 0.9
+#### New producer metrics in Kafka 0.9
+1. Add `metric.reporters` in producer.properties
 ```bash
+    # declare the reporter if new producer/consumer is used
+    metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
+```
+2. Run new-producer
+```bash
+    bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties
+```
 
-    # declare the reporter
+#### New consumer metrics in Kafka 0.9
+1. Add `metric.reporters` in consumer.properties
+```bash
+    # declare the reporter if new producer/consumer is used
+    metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
+```
+2. Run new-consumer
+```bash
+    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --new-consumer --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties
+```
+
+### Old metrics in kafka 0.8
+#### Old producer metrics in Kafka 0.8
+1. Add `kafka.metrics.reporters` in producer.properties
+```bash
+    # declare the reporter if old producer/consumer is used
+    kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
+```
+2. Run old-producer
+```bash
+    bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties --old-producer
+```
+
+#### Old consumer metrics in Kafka 0.9
+1. Add `kafka.metrics.reporters` in consumer.properties
+```bash
+    # declare the reporter if old producer/consumer is used
+    kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
+```
+2. Run old-consumer
+```bash
+    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties
+```
+
+### Configurations
+```bash
+    # declare the reporter if new producer/consumer is used
+    metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
+
+    # declare the reporter if old producer/consumer is used
     kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
 
     # enable the reporter, (false)
@@ -62,19 +116,19 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 
     # a prefix for all metrics names (empty)
     external.kafka.statsd.metrics.prefix=
-    
+
     # note that the StatsD reporter follows the global polling interval (10)
     # kafka.metrics.polling.interval.secs=10
 
 
-    
+
     # A regex to exclude some metrics
     # Default is: (kafka\.consumer\.FetchRequestAndResponseMetrics.*)|(.*ReplicaFetcherThread.*)|(kafka\.server\.FetcherLagMetrics\..*)|(kafka\.log\.Log\..*)|(kafka\.cluster\.Partition\..*)
     #
     # The metric name is formatted with this template: group.type.scope.name
     #
     # external.kafka.statsd.metrics.exclude_regex=
-    
+
     #
     # Each metric provides multiple dimensions: min, max, meanRate, etc
     # This might be too much data.
@@ -109,15 +163,20 @@ You can check your configuration in different ways:
 - A JMX MBean named `kafka:type=com.airbnb.kafka.KafkaStatsdMetricsReporter` should also exist.
 - Check the logs of your StatsD server
 - Finally, on the configured StatsD host, you could listen on the configured port and check for incoming data:
- 
+
 ```bash
     # assuming the Statsd server has been stopped...
     $ nc -ul 8125
-    
+
     kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.samples:1|gkafka.controller.ControllerStats
     .LeaderElectionRateAndTimeMs.meanRate:0.05|gkafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.
     1MinuteRate:0.17|gkafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.5MinuteRate:0.19|g....
 ```
+
+## Sample file of metrics output from statsd
+[new-producer-metrics.txt](https://www.dropbox.com/s/p8e4vl5moa80ikp/new-producer-metrics.txt?dl=0)
+
+[new-consumer-metrics.txt](https://www.dropbox.com/s/ab3t8qis5p58l7f/new-consumer-metrics.txt?dl=0)
 
 ## List of metrics for Kafka 0.8.2
 
@@ -327,8 +386,8 @@ Below are the metrics in Kafka 0.8.2
 
 ## Metrics-2.x vs Metrics-3.x
 The metrics project has two main versions: v2 and v3. Version 3 is not backward compatible.
- 
-Version [0.8.1.1](https://github.com/apache/kafka/blob/0.8.1.1/build.gradle#L217) and [0.8.2.1](https://github.com/apache/kafka/blob/0.8.2.1/build.gradle#L209), Kafka depends on [metrics-2.2.0](http://mvnrepository.com/artifact/com.yammer.metrics/metrics-core/2.2.0). 
+
+Version [0.8.1.1](https://github.com/apache/kafka/blob/0.8.1.1/build.gradle#L217) and [0.8.2.1](https://github.com/apache/kafka/blob/0.8.2.1/build.gradle#L209), Kafka depends on [metrics-2.2.0](http://mvnrepository.com/artifact/com.yammer.metrics/metrics-core/2.2.0).
 
 *Note:*<br/>
 In a future release, Kafka [might upgrade](https://issues.apache.org/jira/browse/KAFKA-960) to Metrics-3.x.
@@ -344,7 +403,7 @@ After cloning the repo, type
     ./gradlew shadowJar
 ```
 
-This produces a jar file in `build/libs/`. 
+This produces a jar file in `build/libs/`.
 
 The shallow jar is a standalone jar.
 
@@ -352,4 +411,3 @@ The shallow jar is a standalone jar.
 # License & Attributions
 
 This project is released under the Apache License Version 2.0 (APLv2).
-
