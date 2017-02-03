@@ -5,37 +5,37 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.yammer.metrics.core.Gauge;
+import org.apache.kafka.common.Metric;
 
 public class StatsDMetricsRegistry {
-  private final Map<String, Gauge<?>> gauges;
+  private final Map<String, Metric> metrics;
   private final Map<String, String> tags;
 
   public StatsDMetricsRegistry() {
-    gauges = new HashMap<String, Gauge<?>>();
+    metrics= new HashMap<String, Metric>();
     tags = new HashMap<String, String>();
   }
 
   public void register(
     String metricName,
-    Gauge<?> gauge,
+    Metric metric,
     String tag
   ) {
-    gauges.put(metricName, gauge);
+    metrics.put(metricName, metric);
     tags.put(metricName, tag);
   }
 
   public void unregister(String metricName) {
-    gauges.remove(metricName);
+    metrics.remove(metricName);
     tags.remove(metricName);
   }
 
   public List<String> getMetricsName() {
-    return new ArrayList<String>(gauges.keySet());
+    return new ArrayList<String>(metrics.keySet());
   }
 
-  public Gauge<?> getGauge(String metricName) {
-    return gauges.get(metricName);
+  public Metric getMetric(String metricName) {
+    return metrics.get(metricName);
   }
 
   public String getTag(String metricName) {

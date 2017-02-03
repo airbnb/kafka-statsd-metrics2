@@ -5,19 +5,18 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.timgroup.statsd.StatsDClient;
-import com.yammer.metrics.core.Clock;
-import com.yammer.metrics.core.Gauge;
+import org.apache.kafka.common.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NewStatsDReporter implements Runnable {
-  private static final Logger log = LoggerFactory.getLogger(NewStatsDReporter.class);
+public class KafkaStatsDReporter implements Runnable {
+  private static final Logger log = LoggerFactory.getLogger(KafkaStatsDReporter.class);
   private final ScheduledExecutorService executor;
 
   private final StatsDClient statsDClient;
   private final StatsDMetricsRegistry registry;
 
-  public NewStatsDReporter(
+  public KafkaStatsDReporter(
     StatsDClient statsDClient,
     StatsDMetricsRegistry registry
   ) {
@@ -46,10 +45,10 @@ public class NewStatsDReporter implements Runnable {
   private void sendAMetric(
     String metricName
   ) {
-    Gauge<?> gauge = registry.getGauge(metricName);
+    Metric metric= registry.getMetric(metricName);
     String tag = registry.getTag(metricName);
 
-    final Object value = gauge.value();
+    final Object value = metric.value();
     if (tag != null) {
       statsDClient.gauge(metricName, new Double(value.toString()), tag);
     } else {

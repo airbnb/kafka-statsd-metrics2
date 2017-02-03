@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package com.airbnb.kafka;
+package com.airbnb.kafka.kafka09;
 
 import com.airbnb.metrics.Dimension;
-import com.airbnb.metrics.NewStatsDReporter;
+import com.airbnb.metrics.KafkaStatsDReporter;
 import com.airbnb.metrics.StatsDMetricsRegistry;
 import com.airbnb.metrics.StatsDReporter;
 
@@ -31,13 +31,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.timgroup.statsd.NonBlockingStatsDClient;
 import com.timgroup.statsd.StatsDClient;
 import com.timgroup.statsd.StatsDClientException;
-import com.yammer.metrics.core.Gauge;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.LoggerFactory;
 
-public class NewStatsdMetricsReporter implements MetricsReporter {
+public class StatsdMetricsReporter implements MetricsReporter {
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(StatsDReporter.class);
 
   public static final String REPORTER_NAME = "kafka-statsd-metrics-0.5";
@@ -62,7 +61,7 @@ public class NewStatsdMetricsReporter implements MetricsReporter {
   private StatsDClient statsd;
   private Map<String, KafkaMetric> kafkaMetrics;
   private StatsDMetricsRegistry registry;
-  private NewStatsDReporter underlying = null;
+  private KafkaStatsDReporter underlying = null;
 
   public boolean isRunning() {
     return running.get();
@@ -76,7 +75,7 @@ public class NewStatsdMetricsReporter implements MetricsReporter {
     if (enabled) {
       startReporter(POLLING_PERIOD_IN_SECONDS);
     } else {
-      log.warn("NewStatsDReporter is disabled");
+      log.warn("KafkaStatsDReporter is disabled");
     }
 
     for (KafkaMetric metric : metrics) {
@@ -103,13 +102,8 @@ public class NewStatsdMetricsReporter implements MetricsReporter {
     if (strBuilder.length() > 0) {
       strBuilder.deleteCharAt(strBuilder.length() - 1);
     }
-    Gauge<Double> gauge = new Gauge<Double>() {
-      @Override
-      public Double value() {
-        return metric.value();
-      }
-    };
-    registry.register(name, gauge, strBuilder.toString());
+
+    registry.register(name, metric, strBuilder.toString());
     log.info("metrics name: {}", name);
   }
 
@@ -147,13 +141,13 @@ public class NewStatsdMetricsReporter implements MetricsReporter {
 
     synchronized (running) {
       if (running.get()) {
-        log.warn("NewStatsDReporter: {} is already running", REPORTER_NAME);
+        log.warn("KafkaStatsDReporter: {} is already running", REPORTER_NAME);
       } else {
         statsd = createStatsd();
-        underlying = new NewStatsDReporter(statsd, registry);
+        underlying = new KafkaStatsDReporter(statsd, registry);
         underlying.start(pollingPeriodInSeconds, TimeUnit.SECONDS);
         log.info(
-          "Started NewStatsDReporter: {} with host={}, port={}, polling_period_secs={}, prefix={}",
+          "Started KafkaStatsDReporter: {} with host={}, port={}, polling_period_secs={}, prefix={}",
           REPORTER_NAME, host, port, pollingPeriodInSeconds, prefix
         );
         running.set(true);
@@ -165,14 +159,14 @@ public class NewStatsdMetricsReporter implements MetricsReporter {
     try {
       return new NonBlockingStatsDClient(prefix, host, port);
     } catch (StatsDClientException ex) {
-      log.error("NewStatsDReporter cannot be started");
+      log.error("KafkaStatsDReporter cannot be started");
       throw ex;
     }
   }
 
   private void stopReporter() {
     if (!enabled) {
-      log.warn("NewStatsDReporter is disabled");
+      log.warn("KafkaStatsDReporter is disabled");
     } else {
       synchronized (running) {
         if (running.get()) {
@@ -183,9 +177,9 @@ public class NewStatsdMetricsReporter implements MetricsReporter {
           }
           statsd.stop();
           running.set(false);
-          log.info("Stopped NewStatsDReporter with host={}, port={}", host, port);
+          log.info("Stopped KafkaStatsDReporter with host={}, port={}", host, port);
         } else {
-          log.warn("NewStatsDReporter is not running");
+          log.warn("KafkaStatsDReporter is not running");
         }
       }
     }

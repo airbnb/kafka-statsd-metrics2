@@ -17,6 +17,7 @@ This project provides a simple integration between Kafka and a StatsD reporter f
 Metrics can be filtered based on the metric name and the metric dimensions (min, max, percentiles, etc).
 
 ## Supported Kafka versions
+
 - For Kafka `0.9.0.0` or later use `kafka-statsd-metrics2-0.5.0`
 - For Kafka `0.8.2.0` or later use `kafka-statsd-metrics2-0.4.0`
 - For Kafka `0.8.1.1` or prior use `kafka-statsd-metrics2-0.3.0`
@@ -49,50 +50,36 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 
 ## How to use metrics in Kafka 0.9 / 0.8?
 ### New metrics in kafka 0.9
-#### New producer metrics in Kafka 0.9
-1. Add `metric.reporters` in producer.properties
+
+1. Add `metric.reporters` in producer.properties or consumer.properties 
 ```bash
     # declare the reporter if new producer/consumer is used
-    metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
+    metric.reporters=com.airbnb.kafka.kafka09.StatsdMetricsReporter
 ```
-2. Run new-producer
+2. Run new-producer or new-consumer
+
+Producer:
 ```bash
     bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties
-```
-
-#### New consumer metrics in Kafka 0.9
-1. Add `metric.reporters` in consumer.properties
-```bash
-    # declare the reporter if new producer/consumer is used
-    metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
-```
-2. Run new-consumer
-```bash
-    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --new-consumer --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties
+    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --new-consumer --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties    
 ```
 
 ### Old metrics in kafka 0.8
-#### Old producer metrics in Kafka 0.8
-1. Add `kafka.metrics.reporters` in producer.properties
+
+1. Add `kafka.metrics.reporters` in producer.properties or consumer.properties 
 ```bash
     # declare the reporter if old producer/consumer is used
-    kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
+    kafka.metrics.reporters=com.airbnb.kafka.kafka08.StatsdMetricsReporter
 ```
-2. Run old-producer
+2. Run old-producer or old-consumer
+
 ```bash
     bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties --old-producer
-```
-
-#### Old consumer metrics in Kafka 0.9
-1. Add `kafka.metrics.reporters` in consumer.properties
-```bash
-    # declare the reporter if old producer/consumer is used
-    kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
-```
-2. Run old-consumer
-```bash
     bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties
 ```
+
+2. Run old-consumer
+
 
 ### Configurations
 ```bash
@@ -100,7 +87,7 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
     metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
 
     # declare the reporter if old producer/consumer is used
-    kafka.metrics.reporters=com.airbnb.kafka.KafkaStatsdMetricsReporter
+    kafka.metrics.reporters=com.airbnb.kafka.kafka08.StatsdMetricsReporter
 
     # enable the reporter, (false)
     external.kafka.statsd.reporter.enabled=true
@@ -160,7 +147,7 @@ You can check your configuration in different ways:
 
 - During Kafka startup, the reporter class will be instantiated and initialized. The logs should contain a message similar to:
 `"Kafka Statsd metrics reporter is enabled"`
-- A JMX MBean named `kafka:type=com.airbnb.kafka.KafkaStatsdMetricsReporter` should also exist.
+- A JMX MBean named `kafka:type=com.airbnb.kafka.kafka08.StatsdMetricsReporter` should also exist.
 - Check the logs of your StatsD server
 - Finally, on the configured StatsD host, you could listen on the configured port and check for incoming data:
 
@@ -177,6 +164,7 @@ You can check your configuration in different ways:
 [new-producer-metrics.txt](https://www.dropbox.com/s/p8e4vl5moa80ikp/new-producer-metrics.txt?dl=0)
 
 [new-consumer-metrics.txt](https://www.dropbox.com/s/ab3t8qis5p58l7f/new-consumer-metrics.txt?dl=0)
+
 
 ## List of metrics for Kafka 0.8.2
 
