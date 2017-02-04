@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.airbnb.kafka;
+package com.airbnb.kafka.kafka08;
 
 import kafka.utils.VerifiableProperties;
 import org.junit.Before;
@@ -25,7 +25,7 @@ import java.util.Properties;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-public class KafkaStatsdMetricsReporterTest {
+public class StatsdMetricsReporterTest {
 
   private VerifiableProperties properties;
 
@@ -38,14 +38,14 @@ public class KafkaStatsdMetricsReporterTest {
     expect(properties.getInt("external.kafka.statsd.port", 8125)).andReturn(1234);
     expect(properties.getString("external.kafka.statsd.metrics.prefix", "")).andReturn("foo");
     expect(properties.getString("external.kafka.statsd.metrics.exclude_regex",
-        KafkaStatsdMetricsReporter.DEFAULT_EXCLUDE_REGEX)).andReturn("foo");
+        StatsdMetricsReporter.DEFAULT_EXCLUDE_REGEX)).andReturn("foo");
     expect(properties.getBoolean("external.kafka.statsd.tag.enabled", true)).andReturn(false);
   }
 
   @Test
   public void mbean_name_should_match() {
-    String name = new KafkaStatsdMetricsReporter().getMBeanName();
-    assertEquals("kafka:type=com.airbnb.kafka.KafkaStatsdMetricsReporter", name);
+    String name = new StatsdMetricsReporter().getMBeanName();
+    assertEquals("kafka:type=com.airbnb.kafka.kafka08.StatsdMetricsReporter", name);
   }
 
   @Test
@@ -53,13 +53,12 @@ public class KafkaStatsdMetricsReporterTest {
     expect(properties.getBoolean("external.kafka.statsd.reporter.enabled", false)).andReturn(true);
 
     replay(properties);
-    KafkaStatsdMetricsReporter reporter = new KafkaStatsdMetricsReporter();
+    StatsdMetricsReporter reporter = new StatsdMetricsReporter();
     assertFalse("reporter should not be running", reporter.isRunning());
     reporter.init(properties);
     assertTrue("reporter should be running once #init has been invoked", reporter.isRunning());
 
     verify(properties);
-
   }
 
   @Test
@@ -67,7 +66,7 @@ public class KafkaStatsdMetricsReporterTest {
     expect(properties.getBoolean("external.kafka.statsd.reporter.enabled", false)).andReturn(false);
 
     replay(properties);
-    KafkaStatsdMetricsReporter reporter = new KafkaStatsdMetricsReporter();
+    StatsdMetricsReporter reporter = new StatsdMetricsReporter();
     assertFalse("reporter should not be running", reporter.isRunning());
     reporter.init(properties);
     assertFalse("reporter should NOT be running once #init has been invoked", reporter.isRunning());

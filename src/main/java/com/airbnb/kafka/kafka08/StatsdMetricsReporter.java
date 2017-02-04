@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.airbnb.kafka;
+package com.airbnb.kafka.kafka08;
 
 import com.airbnb.metrics.Dimension;
 import com.airbnb.metrics.ExcludeMetricPredicate;
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  *
  */
-public class KafkaStatsdMetricsReporter implements KafkaStatsdMetricsReporterMBean, KafkaMetricsReporter {
+public class StatsdMetricsReporter implements StatsdMetricsReporterMBean, KafkaMetricsReporter {
 
   private static final org.slf4j.Logger log = LoggerFactory.getLogger(StatsDReporter.class);
 

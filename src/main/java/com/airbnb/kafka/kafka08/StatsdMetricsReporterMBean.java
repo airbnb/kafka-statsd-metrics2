@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package com.airbnb.kafka;
+package com.airbnb.kafka.kafka08;
 
 import kafka.metrics.KafkaMetricsReporterMBean;
 
@@ -23,5 +23,5 @@ import kafka.metrics.KafkaMetricsReporterMBean;
  * additionally implement an MBean trait that extends kafka.metrics.KafkaMetricsReporterMBean
  * so that the registered MBean is compliant with the standard MBean convention.
  */
-public interface KafkaStatsdMetricsReporterMBean extends KafkaMetricsReporterMBean {
+public interface StatsdMetricsReporterMBean extends KafkaMetricsReporterMBean {
 }
