@@ -104,7 +104,7 @@ public class StatsdMetricsReporter implements MetricsReporter {
     }
 
     registry.register(name, metric, strBuilder.toString());
-    log.info("metrics name: {}", name);
+    log.debug("metrics name: {}", name);
   }
 
   @Override
