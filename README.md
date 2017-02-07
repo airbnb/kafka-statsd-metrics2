@@ -24,6 +24,10 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 
 
 ## Releases
+
+### 0.5.1
+- Fix metrics change log level
+
 ### 0.5.0
 
  - `0.5.0` add support to report new producer/consumer metrics in kafka-0.9
