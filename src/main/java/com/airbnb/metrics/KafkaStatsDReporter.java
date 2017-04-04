@@ -49,10 +49,16 @@ public class KafkaStatsDReporter implements Runnable {
     String tag = registry.getTag(metricName);
 
     final Object value = metric.value();
+    Double val = new Double(value.toString());
+
+    if (val == Double.NEGATIVE_INFINITY || val == Double.POSITIVE_INFINITY) {
+      val = 0D;
+    }
+
     if (tag != null) {
-      statsDClient.gauge(metricName, new Double(value.toString()), tag);
+      statsDClient.gauge(metricName, val, tag);
     } else {
-      statsDClient.gauge(metricName, new Double(value.toString()));
+      statsDClient.gauge(metricName, val);
     }
   }
 

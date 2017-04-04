@@ -25,6 +25,9 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 
 ## Releases
 
+### 0.5.2
+- Convert INFINITY values to 0.
+
 ### 0.5.1
 - Fix metrics change log level
 
