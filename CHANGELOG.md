@@ -1,3 +1,6 @@
+# 0.5.2
+
+- Convert INFINITY values to 0.
 
 # 0.4.0
 
