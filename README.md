@@ -24,30 +24,7 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 
 
 ## Releases
-
-### 0.5.2
-- Convert INFINITY values to 0.
-
-### 0.5.1
-- Fix metrics change log level
-
-### 0.5.0
-
- - `0.5.0` add support to report new producer/consumer metrics in kafka-0.9
- - Compatible with Kafka 0.8
- - A complete list of all the metrics supported in the metrics reporter can be found [here](http://docs.confluent.io/2.0.1/kafka/monitoring.html)
-
-
-### 0.4.0
-
- - `0.4.0` adds support for tags on metrics. See [dogstatsd extensions](http://docs.datadoghq.com/guides/dogstatsd/#tags). If your statsd server does not support tags, you can disable them in the Kafka configuration. See property `external.kafka.statsd.tag.enabled` below.
-
- - The statsd client is [`com.indeed:java-dogstatsd-client:2.0.11`](https://github.com/indeedeng/java-dogstatsd-client/tree/java-dogstatsd-client-2.0.11).
- - support new `MetricNames` introduced by kafka 0.8.2.x
-
-### 0.3.0
-
-- initial release
+See the [changelog](CHANGELOG.md).
 
 ## How to install?
 
@@ -55,8 +32,7 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 - Install the jar in Kafka classpath, typically `./kafka_2.11-0.9.0.1/libs/`
 - In the Kafka config file, `server.properties`, add the following properties. Default values are in parenthesis.
 
-## How to use metrics in Kafka 0.9 / 0.8?
-### New metrics in kafka 0.9
+## How to use metrics in Kafka 0.9?
 
 1. Add `metric.reporters` in producer.properties or consumer.properties 
 ```bash
@@ -70,22 +46,6 @@ Producer:
     bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties
     bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --new-consumer --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties    
 ```
-
-### Old metrics in kafka 0.8
-
-1. Add `kafka.metrics.reporters` in producer.properties or consumer.properties 
-```bash
-    # declare the reporter if old producer/consumer is used
-    kafka.metrics.reporters=com.airbnb.kafka.kafka08.StatsdMetricsReporter
-```
-2. Run old-producer or old-consumer
-
-```bash
-    bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties --old-producer
-    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties
-```
-
-2. Run old-consumer
 
 
 ### Configurations
