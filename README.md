@@ -51,10 +51,7 @@ Producer:
 ### Configurations
 ```bash
     # declare the reporter if new producer/consumer is used
-    metric.reporters=com.airbnb.kafka.StatsdMetricsReporter
-
-    # declare the reporter if old producer/consumer is used
-    kafka.metrics.reporters=com.airbnb.kafka.kafka08.StatsdMetricsReporter
+    metric.reporters=com.airbnb.kafka.kafka09.StatsdMetricsReporter
 
     # enable the reporter, (false)
     external.kafka.statsd.reporter.enabled=true
