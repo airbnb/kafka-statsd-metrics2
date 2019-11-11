@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M3'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
     }
 }
 
@@ -14,7 +14,7 @@ apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group = 'com.airbnb'
-description = 'StatsD Support for Kafka Metrics (kafka version: 0.8 and 0.9)'
+description = 'StatsD Support for Kafka Metrics (kafka version: 0.9)'
 
 repositories {
     mavenCentral()
@@ -23,7 +23,8 @@ repositories {
 
 dependencies {
     compile 'com.indeed:java-dogstatsd-client:2.0.11'
-    compile 'org.apache.kafka:kafka_2.11:0.9.0.1'
+    compile 'org.apache.kafka:kafka-clients:0.9.0.1'
+    compile 'com.yammer.metrics:metrics-core:2.2.0'
     compile 'org.slf4j:slf4j-log4j12:+'
 
     testCompile('junit:junit:4.11',
@@ -36,23 +37,11 @@ compileJava {
     options.encoding = 'UTF-8'
 }
 
-configurations {
-    //manually excludes some unnecessary dependencies
-    compile.exclude module: 'zookeeper'
-    compile.exclude module: 'zkclient'
-    compile.exclude module: 'javax'
-    compile.exclude module: 'jline'
-    compile.exclude module: 'jms'
-    compile.exclude module: 'jmxri'
-    compile.exclude module: 'jmxtools'
-    compile.exclude module: 'mail'
-}
-
 shadowJar {
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
-    exclude 'META-INF/maven/*'
-    exclude dependency('org.apache.kafka:kafka_2.10:0.9.0.1')
-    exclude dependency('org.slf4j:slf4j-log4j12')
+    dependencies {
+        exclude 'META-INF/maven/*'
+        exclude dependency('org.slf4j:slf4j-log4j12')
+        exclude dependency('org.slf4j:slf4j-api')
+        exclude dependency('log4j:log4j')
+    }
 }
-
