@@ -5,7 +5,7 @@ env:
   - TERM=dumb
 
 jdk:
-  - oraclejdk8
+  - openjdk8
 
 script:
   - ./gradlew check --info
