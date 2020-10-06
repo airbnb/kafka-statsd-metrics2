@@ -18,6 +18,7 @@ package com.airbnb.kafka.kafka09;
 
 import com.airbnb.metrics.Dimension;
 import com.airbnb.metrics.KafkaStatsDReporter;
+import com.airbnb.metrics.MetricInfo;
 import com.airbnb.metrics.StatsDMetricsRegistry;
 import com.airbnb.metrics.StatsDReporter;
 
@@ -60,8 +61,9 @@ public class StatsdMetricsReporter implements MetricsReporter {
   private EnumSet<Dimension> metricDimensions;
   private StatsDClient statsd;
   private Map<String, KafkaMetric> kafkaMetrics;
-  private StatsDMetricsRegistry registry;
-  private KafkaStatsDReporter underlying = null;
+
+  StatsDMetricsRegistry registry;
+  KafkaStatsDReporter underlying = null;
 
   public boolean isRunning() {
     return running.get();
@@ -103,15 +105,13 @@ public class StatsdMetricsReporter implements MetricsReporter {
       strBuilder.deleteCharAt(strBuilder.length() - 1);
     }
 
-    registry.register(name, metric, strBuilder.toString());
+    registry.register(metric.metricName(), new MetricInfo(metric, name, strBuilder.toString()));
     log.debug("metrics name: {}", name);
   }
 
   @Override
   public void metricRemoval(KafkaMetric metric) {
-    String name = getMetricName(metric);
-
-    registry.unregister(name);
+    registry.unregister(metric.metricName());
   }
 
   @Override
@@ -155,7 +155,7 @@ public class StatsdMetricsReporter implements MetricsReporter {
     }
   }
 
-  private StatsDClient createStatsd() {
+  StatsDClient createStatsd() {
     try {
       return new NonBlockingStatsDClient(prefix, host, port);
     } catch (StatsDClientException ex) {

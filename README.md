@@ -25,7 +25,10 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 
 ## Releases
 
-### 0.5.2
+### 0.5.4
+- Fix metrics with different tags not reported properly
+
+### 0.5.2 / 0.5.3
 - Convert INFINITY values to 0.
 
 ### 0.5.1

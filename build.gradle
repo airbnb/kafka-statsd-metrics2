@@ -1,17 +1,10 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
-    }
+plugins {
+  id 'java'
+  id 'idea'
+  id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 defaultTasks 'build'
-
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 group = 'com.airbnb'
 description = 'StatsD Support for Kafka Metrics (kafka version: 0.8 and 0.9)'
@@ -26,9 +19,10 @@ dependencies {
     compileOnly 'org.apache.kafka:kafka_2.11:0.9.0.1'
     compileOnly 'org.slf4j:slf4j-log4j12:+'
 
-    testCompile('junit:junit:4.11',
-            'org.easymock:easymock:3.2',
-            "org.mockito:mockito-core:1.+")
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.easymock:easymock:3.2'
+    testCompile 'org.mockito:mockito-inline:3.5.10'
+    testCompile 'com.google.guava:guava:29.0-jre'
 }
 
 compileJava {
@@ -40,7 +34,7 @@ configurations {
     // Make compileOnly dependencies available in tests
     testCompile.extendsFrom compileOnly
 
-    //manually excludes some unnecessary dependencies
+    // manually excludes some unnecessary dependencies
     compile.exclude module: 'zookeeper'
     compile.exclude module: 'zkclient'
     compile.exclude module: 'javax'

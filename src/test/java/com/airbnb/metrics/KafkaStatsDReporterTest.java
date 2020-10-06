@@ -31,12 +31,12 @@ public class KafkaStatsDReporterTest {
   }
 
   protected void addMetricAndRunReporter(
-      String metricName,
-      Metric metric,
-      String tag
+    Metric metric,
+    String metricName,
+    String tag
   ) throws Exception {
     try {
-      registry.register(metricName, metric, tag);
+      registry.register(metric.metricName(), new MetricInfo(metric, metricName, tag));
       reporter.run();
     } finally {
       reporter.shutdown();
@@ -58,7 +58,7 @@ public class KafkaStatsDReporterTest {
       }
     };
 
-    addMetricAndRunReporter("foo", metric, "bar");
+    addMetricAndRunReporter(metric, "foo", "bar");
     verify(statsD).gauge(Matchers.eq("foo"), Matchers.eq(value), Matchers.eq("bar"));
   }
 }
