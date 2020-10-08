@@ -20,7 +20,6 @@ import com.airbnb.metrics.Dimension;
 import com.airbnb.metrics.KafkaStatsDReporter;
 import com.airbnb.metrics.MetricInfo;
 import com.airbnb.metrics.StatsDMetricsRegistry;
-import com.airbnb.metrics.StatsDReporter;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.LoggerFactory;
 
 public class StatsdMetricsReporter implements MetricsReporter {
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(StatsDReporter.class);
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(StatsdMetricsReporter.class);
 
   public static final String REPORTER_NAME = "kafka-statsd-metrics-0.5";
 

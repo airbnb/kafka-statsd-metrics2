@@ -1,7 +1,6 @@
 package com.airbnb.metrics;
 
 import com.timgroup.statsd.StatsDClient;
-import com.yammer.metrics.core.Clock;
 import java.util.HashMap;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
@@ -14,8 +13,6 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.verify;
 
 public class KafkaStatsDReporterTest {
-  @Mock
-  private Clock clock;
   @Mock
   private StatsDClient statsD;
   private KafkaStatsDReporter reporter;

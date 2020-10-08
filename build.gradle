@@ -19,14 +19,26 @@ ext {
   defaultKafkaVersion = '0.9.0.1'
   kafkaVersion = project.getProperties().getOrDefault("kafkaVersion", defaultKafkaVersion)
   kafkaVersionsToTest = ['0.8.2.2', '0.9.0.1', '0.10.2.2', '1.1.1', '2.3.1']
+
+  testWithKafkaClient = project.getProperties().getOrDefault("testWithKafkaClient", false)
+  kafkaClientVersionsToTest = ['0.9.0.1', '0.10.2.2', '1.1.1', '2.3.1']
 }
 
 dependencies {
     compile 'com.indeed:java-dogstatsd-client:2.0.11'
-    compileOnly "org.apache.kafka:kafka_2.11:${defaultKafkaVersion}"
+
+    if (testWithKafkaClient) {
+      compileOnly "org.apache.kafka:kafka-clients:${kafkaVersion}"
+    } else {
+      compileOnly "org.apache.kafka:kafka_2.11:${defaultKafkaVersion}"
+    }
     compileOnly 'org.slf4j:slf4j-log4j12:+'
 
-    testCompile "org.apache.kafka:kafka_2.11:${kafkaVersion}"
+    if (testWithKafkaClient) {
+      testCompile "org.apache.kafka:kafka-clients:${kafkaVersion}"
+    } else {
+      testCompile "org.apache.kafka:kafka_2.11:${kafkaVersion}"
+    }
     testCompile 'org.slf4j:slf4j-log4j12:+'
     testCompile 'junit:junit:4.11'
     testCompile 'org.easymock:easymock:3.2'
@@ -84,10 +96,69 @@ for (kafkaVersion in kafkaVersionsToTest) {
 
 test.doFirst {
   println "Running tests with Kafka version ${kafkaVersion}"
+  println "Testing with Kafka clients: ${testWithKafkaClient}"
 }
+
+task testWithAllSupportedKafkaCoreVersions {
+  group = 'Verification'
+  description = "Runs the unit tests with all supported Kafka core versions: ${kafkaVersionsToTest}"
+  dependsOn(testKafkaVersionTasks)
+}
+
+def testKafkaClientVersionTasks = []
+
+for (kafkaVersion in kafkaClientVersionsToTest) {
+  String kafkaVersionUnderscored = kafkaVersion.replace('.', '_')
+  def task = tasks.create(name: "testWithKafkaClient_${kafkaVersionUnderscored}", type: GradleBuild) {
+    // Changing `buildName` is a workaround for a Gradle issue when trying to run
+    // the aggregate task `testWithAllSupportedKafkaVersions`.
+    // See the following issues:
+    // 1. https://github.com/gradle/gradle/issues/11301
+    // 2. https://github.com/gradle/gradle/issues/12872
+    buildName = project.getName().concat("-kafka-clients_").concat(kafkaVersionUnderscored)
+    buildFile = './build.gradle'
+    tasks = ['test']
+    startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}", testWithKafkaClient: true]
+    group = 'Verification'
+    description = "Runs the unit tests with Kafka core version ${kafkaVersion}"
+
+    compileJava {
+      exclude('com/airbnb/kafka/kafka08')
+      exclude('com/airbnb/metrics/ExcludeMetricPredicate.java')
+      exclude('com/airbnb/metrics/MetricNameFormatter.java')
+      exclude('com/airbnb/metrics/Parser.java')
+      exclude('com/airbnb/metrics/ParserForNoTag.java')
+      exclude('com/airbnb/metrics/ParserForTagInMBeanName.java')
+      exclude('com/airbnb/metrics/StatsDReporter.java')
+    }
+
+    compileTestJava {
+      exclude('com/airbnb/kafka/kafka08')
+      exclude('com/airbnb/metrics/DimensionTest.java')
+      exclude('com/airbnb/metrics/ExcludeMetricPredicateTest.java')
+      exclude('com/airbnb/metrics/MetricNameFormatterTest.java')
+      exclude('com/airbnb/metrics/ParserTest.java')
+      exclude('com/airbnb/metrics/StatsDReporterTest.java')
+    }
+  }
+
+  if (!testKafkaClientVersionTasks.isEmpty()) {
+    task.mustRunAfter(testKafkaClientVersionTasks.last())
+  }
+
+  testKafkaClientVersionTasks.add(task)
+}
+
+task testWithAllSupportedKafkaClientVersions {
+  group = 'Verification'
+  description = "Runs the unit tests with all supported Kafka client versions: ${kafkaClientVersionsToTest}"
+  dependsOn(testKafkaClientVersionTasks)
+}
+
+testWithAllSupportedKafkaClientVersions.mustRunAfter(testWithAllSupportedKafkaCoreVersions)
 
 task testWithAllSupportedKafkaVersions {
   group = 'Verification'
-  description = "Runs the unit tests with all supported Kafka versions: ${kafkaVersionsToTest}"
-  dependsOn(testKafkaVersionTasks)
+  description = "Runs the unit tests with all supported Kafka core and client versions: ${kafkaVersionsToTest}"
+  dependsOn(testWithAllSupportedKafkaCoreVersions, testWithAllSupportedKafkaClientVersions)
 }
