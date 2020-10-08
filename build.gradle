@@ -2,6 +2,7 @@ plugins {
   id 'java'
   id 'idea'
   id 'com.github.johnrengelman.shadow' version '5.2.0'
+  id 'com.adarshr.test-logger' version '2.1.0'
 }
 
 defaultTasks 'build'
@@ -17,7 +18,7 @@ repositories {
 ext {
   defaultKafkaVersion = '0.9.0.1'
   kafkaVersion = project.getProperties().getOrDefault("kafkaVersion", defaultKafkaVersion)
-  kafkaVersionsToTest = ['0.8.2.2', '0.9.0.1', '0.10.2.2', '2.3.1']
+  kafkaVersionsToTest = ['0.8.2.2', '0.9.0.1', '0.10.2.2', '1.1.1', '2.3.1']
 }
 
 dependencies {
@@ -61,7 +62,7 @@ def testKafkaVersionTasks = []
 for (kafkaVersion in kafkaVersionsToTest) {
   String kafkaVersionUnderscored = kafkaVersion.replace('.', '_')
   def task = tasks.create(name: "testWithKafkaCore_${kafkaVersionUnderscored}", type: GradleBuild) {
-    // Changing buildName is a workaround for a Gradle issue when trying to run
+    // Changing `buildName` is a workaround for a Gradle issue when trying to run
     // the aggregate task `testWithAllSupportedKafkaVersions`.
     // See the following issues:
     // 1. https://github.com/gradle/gradle/issues/11301
@@ -79,6 +80,10 @@ for (kafkaVersion in kafkaVersionsToTest) {
   }
 
   testKafkaVersionTasks.add(task)
+}
+
+test.doFirst {
+  println "Running tests with Kafka version ${kafkaVersion}"
 }
 
 task testWithAllSupportedKafkaVersions {
