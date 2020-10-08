@@ -51,6 +51,14 @@ compileJava {
     options.encoding = 'UTF-8'
 }
 
+def excludeFromCompile(Task task, Map<String, List<String>> excludeMap) {
+  excludeMap.each { path, filesToExclude ->
+    filesToExclude.each { fileToExclude ->
+      task.exclude(path + fileToExclude + ".java")
+    }
+  }
+}
+
 if (testWithKafkaClient) {
   def srcExcludes = [
     "com/airbnb/kafka/kafka08/": ["**/*"],
@@ -60,19 +68,9 @@ if (testWithKafkaClient) {
     "com/airbnb/kafka/kafka08/": ["**/*"],
     "com/airbnb/metrics/": ["DimensionTest", "ExcludeMetricPredicateTest", "MetricNameFormatterTest", "ParserTest", "StatsDReporterTest"]
   ]
-  def javaExtension = ".java"
 
-  srcExcludes.each { path, filesToExclude ->
-    filesToExclude.each { fileToExclude ->
-      compileJava.exclude(path + fileToExclude + javaExtension)
-    }
-  }
-
-  testExcludes.each { path, filesToExclude ->
-    filesToExclude.each { fileToExclude ->
-      compileTestJava.exclude(path + fileToExclude + javaExtension)
-    }
-  }
+  excludeFromCompile(compileJava, srcExcludes)
+  excludeFromCompile(compileTestJava, testExcludes)
 }
 
 configurations {
@@ -159,8 +157,6 @@ task testWithAllSupportedKafkaClientVersions {
   description = "Runs the unit tests with all supported Kafka client versions: ${kafkaClientVersionsToTest}"
   dependsOn(testKafkaClientVersionTasks)
 }
-
-testWithAllSupportedKafkaClientVersions.mustRunAfter(testWithAllSupportedKafkaCoreVersions)
 
 task testWithAllSupportedKafkaVersions {
   group = 'Verification'
