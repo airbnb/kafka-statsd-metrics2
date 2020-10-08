@@ -2,6 +2,7 @@ package com.airbnb.metrics;
 
 import com.timgroup.statsd.StatsDClient;
 import com.yammer.metrics.core.Clock;
+import java.util.HashMap;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.junit.Before;
@@ -49,11 +50,17 @@ public class KafkaStatsDReporterTest {
     Metric metric = new Metric() {
       @Override
       public MetricName metricName() {
-        return new MetricName("test-metric", "group");
+        return new MetricName("test-metric", "group", "", new HashMap<>());
       }
 
       @Override
       public double value() {
+        return value;
+      }
+
+      // This is a new method added to the `Metric` interface from Kafka v1.0.0,
+      // which we need for tests on later Kafka versions to pass.
+      public Object metricValue() {
         return value;
       }
     };
