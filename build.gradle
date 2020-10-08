@@ -79,7 +79,7 @@ for (kafkaVersion in kafkaVersionsToTest) {
     // See the following issues:
     // 1. https://github.com/gradle/gradle/issues/11301
     // 2. https://github.com/gradle/gradle/issues/12872
-    buildName = project.getName().concat("-kafka_").concat(kafkaVersionUnderscored)
+    buildName = project.getName() + "-kafka_" + kafkaVersionUnderscored
     buildFile = './build.gradle'
     tasks = ['test']
     startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}"]
@@ -115,30 +115,33 @@ for (kafkaVersion in kafkaClientVersionsToTest) {
     // See the following issues:
     // 1. https://github.com/gradle/gradle/issues/11301
     // 2. https://github.com/gradle/gradle/issues/12872
-    buildName = project.getName().concat("-kafka-clients_").concat(kafkaVersionUnderscored)
+    buildName = project.getName() + "-kafka-clients_" + kafkaVersionUnderscored
     buildFile = './build.gradle'
     tasks = ['test']
     startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}", testWithKafkaClient: true]
     group = 'Verification'
     description = "Runs the unit tests with Kafka core version ${kafkaVersion}"
 
-    compileJava {
-      exclude('com/airbnb/kafka/kafka08')
-      exclude('com/airbnb/metrics/ExcludeMetricPredicate.java')
-      exclude('com/airbnb/metrics/MetricNameFormatter.java')
-      exclude('com/airbnb/metrics/Parser.java')
-      exclude('com/airbnb/metrics/ParserForNoTag.java')
-      exclude('com/airbnb/metrics/ParserForTagInMBeanName.java')
-      exclude('com/airbnb/metrics/StatsDReporter.java')
+    def srcExcludes = [
+      "com/airbnb/kafka/kafka08/": ["**/*"],
+      "com/airbnb/metrics/": ["ExcludeMetricPredicate", "MetricNameFormatter", "Parser", "ParserForNoTag", "ParserForTagInMBeanName", "StatsDReporter"]
+    ]
+    def testExcludes = [
+      "com/airbnb/kafka/kafka08/": ["**/*"],
+      "com/airbnb/metrics/": ["DimensionTest", "ExcludeMetricPredicateTest", "MetricNameFormatterTest", "ParserTest", "StatsDReporterTest"]
+    ]
+    def javaExtension = ".java"
+
+    srcExcludes.each { path, filesToExclude ->
+      filesToExclude.each { fileToExclude ->
+        compileJava.exclude(path + fileToExclude + javaExtension)
+      }
     }
 
-    compileTestJava {
-      exclude('com/airbnb/kafka/kafka08')
-      exclude('com/airbnb/metrics/DimensionTest.java')
-      exclude('com/airbnb/metrics/ExcludeMetricPredicateTest.java')
-      exclude('com/airbnb/metrics/MetricNameFormatterTest.java')
-      exclude('com/airbnb/metrics/ParserTest.java')
-      exclude('com/airbnb/metrics/StatsDReporterTest.java')
+    testExcludes.each { path, filesToExclude ->
+      filesToExclude.each { fileToExclude ->
+        compileTestJava.exclude(path + fileToExclude + javaExtension)
+      }
     }
   }
 
