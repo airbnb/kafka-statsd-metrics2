@@ -120,7 +120,7 @@ for (kafkaVersion in kafkaClientVersionsToTest) {
     tasks = ['test']
     startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}", testWithKafkaClient: true]
     group = 'Verification'
-    description = "Runs the unit tests with Kafka core version ${kafkaVersion}"
+    description = "Runs the unit tests with Kafka client version ${kafkaVersion}"
 
     def srcExcludes = [
       "com/airbnb/kafka/kafka08/": ["**/*"],
