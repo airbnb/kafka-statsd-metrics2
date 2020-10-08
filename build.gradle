@@ -51,6 +51,30 @@ compileJava {
     options.encoding = 'UTF-8'
 }
 
+if (testWithKafkaClient) {
+  def srcExcludes = [
+    "com/airbnb/kafka/kafka08/": ["**/*"],
+    "com/airbnb/metrics/": ["ExcludeMetricPredicate", "MetricNameFormatter", "Parser", "ParserForNoTag", "ParserForTagInMBeanName", "StatsDReporter"]
+  ]
+  def testExcludes = [
+    "com/airbnb/kafka/kafka08/": ["**/*"],
+    "com/airbnb/metrics/": ["DimensionTest", "ExcludeMetricPredicateTest", "MetricNameFormatterTest", "ParserTest", "StatsDReporterTest"]
+  ]
+  def javaExtension = ".java"
+
+  srcExcludes.each { path, filesToExclude ->
+    filesToExclude.each { fileToExclude ->
+      compileJava.exclude(path + fileToExclude + javaExtension)
+    }
+  }
+
+  testExcludes.each { path, filesToExclude ->
+    filesToExclude.each { fileToExclude ->
+      compileTestJava.exclude(path + fileToExclude + javaExtension)
+    }
+  }
+}
+
 configurations {
     // manually excludes some unnecessary dependencies
     compile.exclude module: 'zookeeper'
@@ -121,28 +145,6 @@ for (kafkaVersion in kafkaClientVersionsToTest) {
     startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}", testWithKafkaClient: true]
     group = 'Verification'
     description = "Runs the unit tests with Kafka client version ${kafkaVersion}"
-
-    def srcExcludes = [
-      "com/airbnb/kafka/kafka08/": ["**/*"],
-      "com/airbnb/metrics/": ["ExcludeMetricPredicate", "MetricNameFormatter", "Parser", "ParserForNoTag", "ParserForTagInMBeanName", "StatsDReporter"]
-    ]
-    def testExcludes = [
-      "com/airbnb/kafka/kafka08/": ["**/*"],
-      "com/airbnb/metrics/": ["DimensionTest", "ExcludeMetricPredicateTest", "MetricNameFormatterTest", "ParserTest", "StatsDReporterTest"]
-    ]
-    def javaExtension = ".java"
-
-    srcExcludes.each { path, filesToExclude ->
-      filesToExclude.each { fileToExclude ->
-        compileJava.exclude(path + fileToExclude + javaExtension)
-      }
-    }
-
-    testExcludes.each { path, filesToExclude ->
-      filesToExclude.each { fileToExclude ->
-        compileTestJava.exclude(path + fileToExclude + javaExtension)
-      }
-    }
   }
 
   if (!testKafkaClientVersionTasks.isEmpty()) {
