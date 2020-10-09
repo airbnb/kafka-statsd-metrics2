@@ -1,7 +1,7 @@
 package com.airbnb.metrics;
 
 import com.timgroup.statsd.StatsDClient;
-import com.yammer.metrics.core.Clock;
+import java.util.HashMap;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.junit.Before;
@@ -13,8 +13,6 @@ import org.mockito.MockitoAnnotations;
 import static org.mockito.Mockito.verify;
 
 public class KafkaStatsDReporterTest {
-  @Mock
-  private Clock clock;
   @Mock
   private StatsDClient statsD;
   private KafkaStatsDReporter reporter;
@@ -31,12 +29,12 @@ public class KafkaStatsDReporterTest {
   }
 
   protected void addMetricAndRunReporter(
-      String metricName,
-      Metric metric,
-      String tag
+    Metric metric,
+    String metricName,
+    String tag
   ) throws Exception {
     try {
-      registry.register(metricName, metric, tag);
+      registry.register(metric.metricName(), new MetricInfo(metric, metricName, tag));
       reporter.run();
     } finally {
       reporter.shutdown();
@@ -49,16 +47,22 @@ public class KafkaStatsDReporterTest {
     Metric metric = new Metric() {
       @Override
       public MetricName metricName() {
-        return new MetricName("test-metric", "group");
+        return new MetricName("test-metric", "group", "", new HashMap<>());
       }
 
       @Override
       public double value() {
         return value;
       }
+
+      // This is a new method added to the `Metric` interface from Kafka v1.0.0,
+      // which we need for tests on later Kafka versions to pass.
+      public Object metricValue() {
+        return value;
+      }
     };
 
-    addMetricAndRunReporter("foo", metric, "bar");
+    addMetricAndRunReporter(metric, "foo", "bar");
     verify(statsD).gauge(Matchers.eq("foo"), Matchers.eq(value), Matchers.eq("bar"));
   }
 }

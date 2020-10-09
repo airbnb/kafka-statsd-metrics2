@@ -1,44 +1,27 @@
 package com.airbnb.metrics;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.kafka.common.Metric;
+import org.apache.kafka.common.MetricName;
 
 public class StatsDMetricsRegistry {
-  private final Map<String, Metric> metrics;
-  private final Map<String, String> tags;
+  private final Map<MetricName, MetricInfo> metrics;
 
   public StatsDMetricsRegistry() {
-    metrics= new HashMap<String, Metric>();
-    tags = new HashMap<String, String>();
+    metrics = new HashMap<>();
   }
 
-  public void register(
-    String metricName,
-    Metric metric,
-    String tag
-  ) {
-    metrics.put(metricName, metric);
-    tags.put(metricName, tag);
+  public void register(MetricName metricName, MetricInfo metricInfo) {
+    metrics.put(metricName, metricInfo);
   }
 
-  public void unregister(String metricName) {
+  public void unregister(MetricName metricName) {
     metrics.remove(metricName);
-    tags.remove(metricName);
   }
 
-  public List<String> getMetricsName() {
-    return new ArrayList<String>(metrics.keySet());
-  }
-
-  public Metric getMetric(String metricName) {
-    return metrics.get(metricName);
-  }
-
-  public String getTag(String metricName) {
-    return tags.get(metricName);
+  public Collection<MetricInfo> getAllMetricInfo() {
+      return metrics.values();
   }
 }
