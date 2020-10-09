@@ -50,6 +50,8 @@ public class StatsdMetricsReporter implements MetricsReporter {
 
   private static final String METRIC_PREFIX = "kafka.";
   private static final int POLLING_PERIOD_IN_SECONDS = 10;
+  private static final String STATSD_UDP_PORT = "STATSD_UDP_PORT";
+  private static final String STATSD_UDP_HOST = "STATSD_UDP_HOST";
 
   private boolean enabled;
   private final AtomicBoolean running = new AtomicBoolean(false);
@@ -118,14 +120,22 @@ public class StatsdMetricsReporter implements MetricsReporter {
     stopReporter();
   }
 
+  private String configSettingOrEnvVar(Map<String, ?> configs, String setting, String varName) {
+    if (configs.containsKey(setting)) {
+      return (String) configs.get(setting);
+    } else {
+      return System.getenv(varName);
+    }
+  }
+
   @Override
   public void configure(Map<String, ?> configs) {
     enabled = configs.containsKey(STATSD_REPORTER_ENABLED) ?
       Boolean.valueOf((String) configs.get(STATSD_REPORTER_ENABLED)) : false;
-    host = configs.containsKey(STATSD_HOST) ?
-      (String) configs.get(STATSD_HOST) : "localhost";
-    port = configs.containsKey(STATSD_PORT) ?
-      Integer.valueOf((String) configs.get(STATSD_PORT)) : 8125;
+    host = configSettingOrEnvVar(configs, STATSD_HOST, STATSD_UDP_HOST) != null ?
+      configSettingOrEnvVar(configs, STATSD_HOST, STATSD_UDP_HOST) : "localhost";
+    port = configSettingOrEnvVar(configs, STATSD_PORT, STATSD_UDP_PORT) != null ?
+      Integer.valueOf(configSettingOrEnvVar(configs, STATSD_PORT, STATSD_UDP_PORT)) : 8125;
     prefix = configs.containsKey(STATSD_METRICS_PREFIX) ?
       (String) configs.get(STATSD_METRICS_PREFIX) : "";
     pollingPeriodInSeconds = configs.containsKey(POLLING_INTERVAL_SECS) ?
