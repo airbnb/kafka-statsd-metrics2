@@ -49,7 +49,6 @@ public class StatsdMetricsReporter implements MetricsReporter {
   public static final String STATSD_DIMENSION_ENABLED = "external.kafka.statsd.dimension.enabled";
 
   private static final String METRIC_PREFIX = "kafka.";
-  private static final int POLLING_PERIOD_IN_SECONDS = 10;
 
   private boolean enabled;
   private final AtomicBoolean running = new AtomicBoolean(false);
@@ -74,7 +73,7 @@ public class StatsdMetricsReporter implements MetricsReporter {
     kafkaMetrics = new HashMap<String, KafkaMetric>();
 
     if (enabled) {
-      startReporter(POLLING_PERIOD_IN_SECONDS);
+      startReporter(pollingPeriodInSeconds);
     } else {
       log.warn("KafkaStatsDReporter is disabled");
     }
