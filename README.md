@@ -19,11 +19,12 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 ## Supported Kafka versions
 
 - For Kafka `0.9.0.0` or later use `kafka-statsd-metrics2-0.5.0`
-- For Kafka `0.8.2.0` or later use `kafka-statsd-metrics2-0.4.0`
-- For Kafka `0.8.1.1` or prior use `kafka-statsd-metrics2-0.3.0`
 
 
 ## Releases
+
+### 0.5.5
+- - Remove support for Kafka v0.8.
 
 ### 0.5.4
 - Fix metrics with different tags not reported properly
@@ -58,7 +59,7 @@ Metrics can be filtered based on the metric name and the metric dimensions (min,
 - Install the jar in Kafka classpath, typically `./kafka_2.11-0.9.0.1/libs/`
 - In the Kafka config file, `server.properties`, add the following properties. Default values are in parenthesis.
 
-## How to use metrics in Kafka 0.9 / 0.8?
+## How to use metrics in Kafka 0.9?
 ### New metrics in kafka 0.9
 
 1. Add `metric.reporters` in producer.properties or consumer.properties 
@@ -73,23 +74,6 @@ Producer:
     bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties
     bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --new-consumer --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties    
 ```
-
-### Old metrics in kafka 0.8
-
-1. Add `kafka.metrics.reporters` in producer.properties or consumer.properties 
-```bash
-    # declare the reporter if old producer/consumer is used
-    kafka.metrics.reporters=com.airbnb.kafka.kafka08.StatsdMetricsReporter
-```
-2. Run old-producer or old-consumer
-
-```bash
-    bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test --producer.config config/producer.properties --old-producer
-    bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --zookeeper localhost:2181 --topic test -from-beginning --consumer.config config/consumer.properties
-```
-
-2. Run old-consumer
-
 
 ### Configurations
 ```bash

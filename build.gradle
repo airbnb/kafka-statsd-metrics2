@@ -8,7 +8,7 @@ plugins {
 defaultTasks 'build'
 
 group = 'com.airbnb'
-description = 'StatsD Support for Kafka Metrics (kafka version: 0.8 and 0.9)'
+description = 'StatsD Support for Kafka Metrics (kafka version: 0.9)'
 
 repositories {
     mavenCentral()
@@ -18,27 +18,29 @@ repositories {
 ext {
   defaultKafkaVersion = '0.9.0.1'
   kafkaVersion = project.getProperties().getOrDefault("kafkaVersion", defaultKafkaVersion)
-  kafkaVersionsToTest = ['0.8.2.2', '0.9.0.1', '0.10.2.2', '1.1.1', '2.3.1']
+  kafkaVersionsToTest = ['0.9.0.1', '0.10.2.2', '1.1.1', '2.3.1']
 
-  testWithKafkaClient = project.getProperties().getOrDefault("testWithKafkaClient", false)
+  testWithKafkaBroker = project.getProperties().getOrDefault("testWithKafkaBroker", true)
   kafkaClientVersionsToTest = ['0.9.0.1', '0.10.2.2', '1.1.1', '2.3.1']
 }
 
 dependencies {
     compile 'com.indeed:java-dogstatsd-client:2.0.11'
 
-    if (testWithKafkaClient) {
-      compileOnly "org.apache.kafka:kafka-clients:${kafkaVersion}"
+    if (testWithKafkaBroker) {
+      compileOnly "org.apache.kafka:kafka_2.11:${kafkaVersion}"
     } else {
-      compileOnly "org.apache.kafka:kafka_2.11:${defaultKafkaVersion}"
+      compileOnly "org.apache.kafka:kafka-clients:${kafkaVersion}"
     }
+    compileOnly 'com.yammer.metrics:metrics-core:2.2.0'
     compileOnly 'org.slf4j:slf4j-log4j12:+'
 
-    if (testWithKafkaClient) {
-      testCompile "org.apache.kafka:kafka-clients:${kafkaVersion}"
-    } else {
+    if (testWithKafkaBroker) {
       testCompile "org.apache.kafka:kafka_2.11:${kafkaVersion}"
+    } else {
+      testCompile "org.apache.kafka:kafka-clients:${kafkaVersion}"
     }
+    testCompile 'com.yammer.metrics:metrics-core:2.2.0'
     testCompile 'org.slf4j:slf4j-log4j12:+'
     testCompile 'junit:junit:4.11'
     testCompile 'org.easymock:easymock:3.2'
@@ -59,13 +61,11 @@ def excludeFromCompile(Task task, Map<String, List<String>> excludeMap) {
   }
 }
 
-if (testWithKafkaClient) {
+if (testWithKafkaBroker) {
   def srcExcludes = [
-    "com/airbnb/kafka/kafka08/": ["**/*"],
     "com/airbnb/metrics/": ["ExcludeMetricPredicate", "MetricNameFormatter", "Parser", "ParserForNoTag", "ParserForTagInMBeanName", "StatsDReporter"]
   ]
   def testExcludes = [
-    "com/airbnb/kafka/kafka08/": ["**/*"],
     "com/airbnb/metrics/": ["DimensionTest", "ExcludeMetricPredicateTest", "MetricNameFormatterTest", "ParserTest", "StatsDReporterTest"]
   ]
 
@@ -73,17 +73,6 @@ if (testWithKafkaClient) {
   excludeFromCompile(compileTestJava, testExcludes)
 }
 
-configurations {
-    // manually excludes some unnecessary dependencies
-    compile.exclude module: 'zookeeper'
-    compile.exclude module: 'zkclient'
-    compile.exclude module: 'javax'
-    compile.exclude module: 'jline'
-    compile.exclude module: 'jms'
-    compile.exclude module: 'jmxri'
-    compile.exclude module: 'jmxtools'
-    compile.exclude module: 'mail'
-}
 
 shadowJar {
     exclude 'META-INF/*.DSA'
@@ -118,7 +107,7 @@ for (kafkaVersion in kafkaVersionsToTest) {
 
 test.doFirst {
   println "Running tests with Kafka version ${kafkaVersion}"
-  println "Testing with Kafka clients: ${testWithKafkaClient}"
+  println "Testing with Kafka broker: ${testWithKafkaBroker}"
 }
 
 task testWithAllSupportedKafkaCoreVersions {
@@ -131,7 +120,7 @@ def testKafkaClientVersionTasks = []
 
 for (kafkaVersion in kafkaClientVersionsToTest) {
   String kafkaVersionUnderscored = kafkaVersion.replace('.', '_')
-  def task = tasks.create(name: "testWithKafkaClient_${kafkaVersionUnderscored}", type: GradleBuild) {
+  def task = tasks.create(name: "testWithKafkaBroker_${kafkaVersionUnderscored}", type: GradleBuild) {
     // Changing `buildName` is a workaround for a Gradle issue when trying to run
     // the aggregate task `testWithAllSupportedKafkaVersions`.
     // See the following issues:
@@ -140,7 +129,7 @@ for (kafkaVersion in kafkaClientVersionsToTest) {
     buildName = project.getName() + "-kafka-clients_" + kafkaVersionUnderscored
     buildFile = './build.gradle'
     tasks = ['test']
-    startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}", testWithKafkaClient: true]
+    startParameter.projectProperties = [kafkaVersion: "${kafkaVersion}", testWithKafkaBroker: false]
     group = 'Verification'
     description = "Runs the unit tests with Kafka client version ${kafkaVersion}"
   }
